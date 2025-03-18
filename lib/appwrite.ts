@@ -1,4 +1,11 @@
-import { Account, Avatars, Client, Databases, OAuthProvider } from "react-native-appwrite";
+import {
+  Account,
+  Avatars,
+  Client,
+  Databases,
+  OAuthProvider,
+  Query,
+} from "react-native-appwrite";
 import * as Linking from "expo-linking";
 import { openAuthSessionAsync } from "expo-web-browser";
 
@@ -8,21 +15,21 @@ export const config = {
   projectId: process.env.EXPO_PUBLIC_APPWIRTE_PROJECT_ID,
   databaseId: process.env.EXPO_PUBLIC_APPWIRTE_DATABASE_ID,
   agentsCollectionId: process.env.EXPO_PUBLIC_APPWIRTE_AGENTS_COLLECTIONS_ID,
-  galleriesCollectionId: process.env.EXPO_PUBLIC_APPWIRTE_GALLERIES_COLLECTIONS_ID,
+  galleriesCollectionId:
+    process.env.EXPO_PUBLIC_APPWIRTE_GALLERIES_COLLECTIONS_ID,
   reviewsCollectionId: process.env.EXPO_PUBLIC_APPWIRTE_REVIEWS_COLLECTIONS_ID,
-  propertiesCollectionId: process.env.EXPO_PUBLIC_APPWIRTE_PROPERTIES_COLLECTIONS_ID,
+  propertiesCollectionId:
+    process.env.EXPO_PUBLIC_APPWIRTE_PROPERTIES_COLLECTIONS_ID,
 };
 
 export const client = new Client()
   .setEndpoint(config.endpoint!)
   .setProject(config.projectId!)
-  .setPlatform(config.platform!)
-
+  .setPlatform(config.platform!);
 
 export const avatar = new Avatars(client);
 export const account = new Account(client);
-export const databases =  new Databases(client)
-
+export const databases = new Databases(client);
 
 export async function login() {
   try {
@@ -50,7 +57,7 @@ export async function login() {
 
     return true;
   } catch (error) {
-    console.error(error );
+    console.error(error);
 
     return false;
   }
@@ -84,5 +91,74 @@ export async function getCurrentUser() {
   }
 }
 
+export const getLastestProperties = async () => {
+  try {
+    const res = await databases.listDocuments(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      [Query.orderAsc("$createdAt"), Query.limit(5)]
+    );
+    return res.documents;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
 
-export const 
+export const getProperties = async ({
+  filter,
+  query,
+  limit,
+}: {
+  filter: string;
+  query: string;
+  limit?: number;
+}) => {
+  try {
+    const buildQuery = [Query.orderDesc("$createdAt")];
+
+    if (filter && filter !== "All")
+      buildQuery.push(Query.equal("type", filter));
+    if (limit) buildQuery.push(Query.limit(limit));
+    if (query)
+      buildQuery.push(
+        Query.or([
+          Query.search("name", query),
+          Query.search("address", query),
+          Query.search("type", query),
+        ])
+      );
+
+    const res = await databases.listDocuments(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      buildQuery
+    );
+    return res.documents;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getPropertyById = async ({
+  id,
+}: {
+  id: string;
+})=> {
+
+  try {
+    const res = await databases.getDocument(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      id
+    );
+    console.log({fr:res.id});
+    console.log({res});
+    return res;
+  } catch (error) {
+    console.log(error);
+    console.log('asd');
+    return null;
+  }
+};

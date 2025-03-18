@@ -1,21 +1,60 @@
 import { FeaturedCard, RegularCard } from "@/components/Card";
 import Filters from "@/components/Filters";
+import NoResults from "@/components/NoResults";
 import SearchBar from "@/components/SearchBar";
 import icons from "@/constants/icons";
+import { getLastestProperties, getProperties } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-context";
-import React from "react";
-import { View, Text, Image, TouchableOpacity, FlatList, Button } from "react-native";
+import { useAppwrite } from "@/lib/useAppwrite";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
+  const { user } = useGlobalContext();
 
-  const {user} = useGlobalContext()
+  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
+
+  const { data: latestProperties, loading: loadinglatestProperties } =
+    useAppwrite({ fn: getLastestProperties });
+
+  const {
+    data: properties,
+    loading: loadingproperties,
+    refetch,
+  } = useAppwrite({
+    fn: getProperties,
+    params: { query: params.query!, filter: params.filter!, limit: 2 },
+    skip: true,
+  });
+
+  const handleCardPress = (id: string) => {
+    router.push(`/properties/${id}`);
+  };
+
+  useEffect(() => {
+    refetch({ query: params.query!, filter: params.filter!, limit: 6 });
+  }, [params.filter, params.query]);
+
   return (
     <SafeAreaView className="h-full bg-white">
       <FlatList
-        data={[1, 2, 3, 4]}
-        renderItem={({ item }) => <RegularCard></RegularCard>}
-        keyExtractor={(item) => item.toString()}
+        ListEmptyComponent={
+          loadingproperties ? <ActivityIndicator size={'large'} className="text-primary-300 mt-5"  /> : <NoResults />
+        }
+        data={properties}
+        renderItem={({ item }) => (
+          <RegularCard onPress={() => handleCardPress(item.$id)} item={item} />
+        )}
+        keyExtractor={(item) => item.$id.toString()}
         numColumns={2}
         contentContainerClassName={"pb-32"}
         columnWrapperClassName={"flex gap-5 px-5"}
@@ -25,7 +64,7 @@ export default function Index() {
             <View className=" flex flex-row items-center justify-between mt-5">
               <View className=" flex flex-row items-center">
                 <Image
-                  source={{uri:user?.avatar}}
+                  source={{ uri: user?.avatar }}
                   className="size-12 rounded-full"
                 />
 
@@ -55,9 +94,17 @@ export default function Index() {
               </View>
             </View>
             <FlatList
-              data={[1, 2]}
-              renderItem={({ item }) => <FeaturedCard />}
-              keyExtractor={(item) => item.toString()}
+              ListEmptyComponent={
+                loadinglatestProperties ? <ActivityIndicator  size={'large'} className="text-primary-300 mt-5"  /> : <NoResults />
+              }
+              data={latestProperties}
+              renderItem={({ item }) => (
+                <FeaturedCard
+                  onPress={() => handleCardPress(item.$id)}
+                  item={item}
+                />
+              )}
+              keyExtractor={(item) => item.$id.toString()}
               horizontal
               bounces={false}
               showsHorizontalScrollIndicator={false}
