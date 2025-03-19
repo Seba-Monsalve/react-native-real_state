@@ -11,15 +11,13 @@ import { openAuthSessionAsync } from "expo-web-browser";
 
 export const config = {
   platform: "com.imaginaryInc.real-state",
-  endpoint: process.env.EXPO_PUBLIC_APPWIRTE_ENDPOINT,
-  projectId: process.env.EXPO_PUBLIC_APPWIRTE_PROJECT_ID,
-  databaseId: process.env.EXPO_PUBLIC_APPWIRTE_DATABASE_ID,
-  agentsCollectionId: process.env.EXPO_PUBLIC_APPWIRTE_AGENTS_COLLECTIONS_ID,
-  galleriesCollectionId:
-    process.env.EXPO_PUBLIC_APPWIRTE_GALLERIES_COLLECTIONS_ID,
-  reviewsCollectionId: process.env.EXPO_PUBLIC_APPWIRTE_REVIEWS_COLLECTIONS_ID,
-  propertiesCollectionId:
-    process.env.EXPO_PUBLIC_APPWIRTE_PROPERTIES_COLLECTIONS_ID,
+  endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT,
+  projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID,
+  databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID,
+
+  usersCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USERS_COLLECTIONS_ID,
+  transactionsCollectionId:
+    process.env.EXPO_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTIONS_ID,
 };
 
 export const client = new Client()
@@ -95,8 +93,8 @@ export const getLastestProperties = async () => {
   try {
     const res = await databases.listDocuments(
       config.databaseId!,
-      config.propertiesCollectionId!,
-      [Query.orderAsc("$createdAt"), Query.limit(5)]
+      config.transactionsCollectionId!,
+      [Query.orderAsc("$createdAt")]
     );
     return res.documents;
   } catch (error) {
@@ -141,24 +139,31 @@ export const getProperties = async ({
   }
 };
 
-export const getPropertyById = async ({
-  id,
-}: {
-  id: string;
-})=> {
-
+export const getTransactionById = async ({ id }: { id: string }) => {
   try {
-    const res = await databases.getDocument(
+    const res = await databases.listDocuments(
       config.databaseId!,
-      config.propertiesCollectionId!,
-      id
+      config.transactionsCollectionId!,
+      [Query.equal("id_receiver", id)]
     );
-    console.log({fr:res.id});
-    console.log({res});
     return res;
   } catch (error) {
     console.log(error);
-    console.log('asd');
+    console.log("asd");
     return null;
+  }
+};
+
+export const getUsers = async () => {
+  try {
+    const res = await databases.listDocuments(
+      config.databaseId!,
+      config.usersCollectionId!,
+      [Query.orderAsc("$createdAt"), Query.limit(5)]
+    );
+    return res.documents;
+  } catch (error) {
+    console.log(error);
+    return [];
   }
 };
