@@ -5,7 +5,7 @@ import icons from "@/constants/icons";
 
 const NavBarBack = ({ title = "" }: { title?: string }) => {
   return (
-    <View className="flex flex-row items-center gap-4">
+    <View className="flex flex-row items-center gap-4 m-2">
       <TouchableOpacity
         className="flex flex-row items-center gap-2"
         onPress={() => router.back()}

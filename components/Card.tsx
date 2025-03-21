@@ -12,9 +12,6 @@ export const Card = ({ item, onPress }: any) => {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const {height, width} = Dimensions.get('window');
 
-  console.log(` w-[${width *1}px]`)
-
-
   return (
     <TouchableOpacity
       className={` w-100 mr-3 bg-red-800   rounded-lg p-5 `}

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "real-state-app",
-    "slug": "real-state-app",
+    "name": "cuentas-claras",
+    "slug": "cuentas-claras",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -48,9 +48,17 @@
         }
       ]
     ],
-
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "018d74f2-78af-4a0d-b6a5-c1b809574787"
+      }
+    },
+    "owner": "seba-monsalve"
   }
 }

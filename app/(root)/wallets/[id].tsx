@@ -15,7 +15,7 @@ const Wallet = () => {
     fn: getTransactionById,
     params: { id: id! },
   });
-  if (loading) return <Loading title='Loading'/>;
+  if (loading) return <Loading title="Loading" />;
 
   const documentos = data?.documents || [];
   const sumValues = documentos.reduce((total, item) => total + item.monto, 0);
@@ -28,18 +28,24 @@ const Wallet = () => {
           <Image source={icons.info} className="size-7" />
         </View>
       </View>
+
       <View className=" mt-5">
         <Text className="text-xl text-gray-600">Total:</Text>
         <Text className="text-5xl text-gray-800 mt-5">$ {sumValues}</Text>
       </View>
-      <View className="flex-1 px-2">
-        <Text className="text-2xl mt-5 font-semibold mb-2">
-          Transactions: ({data!.total}){" "}
-        </Text>
+
+      <View className="flex-1 px-2 mt-5">
+        <View className="flex flex-row items-center justify-between">
+          <Text className="text-2xl  font-semibold mb-2">
+            Transactions: ({data!.total}){" "}
+          </Text>
+         
+        </View>
         <FlatList
           data={data?.documents}
           contentContainerStyle={{ paddingBottom: 30, marginTop: 5 }}
           showsVerticalScrollIndicator={false}
+          bounces={true}
           renderItem={({ item }) => <ListItem {...item} />}
           keyExtractor={(item, index) => item.$id}
         />
