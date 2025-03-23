@@ -15,7 +15,6 @@ const COLLECTIONS = {
 };
 
 
-console.log({COLLECTIONS});
 
 const propertyTypes = [
   "House",
@@ -160,9 +159,6 @@ async function seed() {
               Math.floor(Math.random() * propertiesImages.length)
             ];
 
-              console.log({assignedAgent})
-              console.log({assignedReviews})
-              console.log({assignedGalleries})
       const property = await databases.createDocument(
         config.databaseId!,
         COLLECTIONS.PROPERTY!,

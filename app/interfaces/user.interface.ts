@@ -4,4 +4,5 @@ export interface User {
   isActive: boolean;
   avatar: string;
   $id:string
+  noDebt:boolean
 }

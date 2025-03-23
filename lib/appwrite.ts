@@ -3,6 +3,7 @@ import {
   Avatars,
   Client,
   Databases,
+  ID,
   OAuthProvider,
   Query,
 } from "react-native-appwrite";
@@ -73,8 +74,6 @@ export async function login() {
           isActive: true,
         }
       );
-
-      console.log({ newUser });
     }
 
     return true;
@@ -104,9 +103,9 @@ export async function getCurrentUser() {
       config.usersCollectionId!,
       result.$id
     );
-    console.log({ user });
     if (user) {
       const userAvatar = avatar.getInitials(result.name);
+      console.log(user);
       return {
         ...user,
         avatar: user.avatar || userAvatar.toString(),
@@ -175,9 +174,10 @@ export const getTransactionById = async ({ id }: { id: string }) => {
     const res = await databases.listDocuments(
       config.databaseId!,
       config.transactionsCollectionId!,
-      [Query.equal("id_receiver", id)]
+      [Query.equal("createdUsers", id)]
+      
     );
-    return res;
+    return res.documents;
   } catch (error) {
     console.log(error);
     return null;
@@ -205,7 +205,6 @@ export const getCreatedUsers = async ({ id }: { id: string }) => {
       config.createdUserCollectionId!,
       [Query.equal("created_by", id)]
     );
-    console.log(res);
     return res.documents;
   } catch (error) {
     console.log(error);
@@ -224,5 +223,61 @@ export const getUserById = async ({ id }: { id: string }) => {
   } catch (error) {
     console.log(error);
     return null;
+  }
+};
+
+export const createUser = async ({
+  name,
+  created_by,
+}: {
+  name: string;
+  created_by: string;
+}): Promise<boolean> => {
+  try {
+    const user = await databases.createDocument(
+      config.databaseId!,
+      config.createdUserCollectionId!,
+      ID.unique(),
+      {
+        name,
+        created_by,
+      }
+    );
+    console.log(user);
+    return true;
+  } catch (error) {
+    console.log("error en createUser", error);
+    return false;
+  }
+};
+
+export const createTransaction = async ({
+  monto,
+  motivo,
+  paid_by,
+  createdUsers,
+  id_receiver
+}: any) => {
+  console.log({monto,
+    motivo,
+    paid_by,
+    createdUsers,});
+  try {
+    const transaction = await databases.createDocument(
+      config.databaseId!,
+      config.transactionsCollectionId!,
+      ID.unique(),
+      {
+        monto,
+        motivo,
+        paid_by,
+        createdUsers,
+        id_receiver
+      }
+    );
+    return transaction;
+  } catch (error) {
+    console.log("error en createTransaction", error);
+    return false;
   }
 };

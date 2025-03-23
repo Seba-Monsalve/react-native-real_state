@@ -32,6 +32,7 @@ import wifi from "@/assets/icons/wifi.png";
 import location from "@/assets/icons/location.png";
 import edit from "@/assets/icons/edit.png";
 import add from "@/assets/icons/add.png";
+import clear from "@/assets/icons/delete.png";
 
 export default {
   google,
@@ -68,4 +69,5 @@ export default {
   location,
   edit,
   add,
+  clear,
 };

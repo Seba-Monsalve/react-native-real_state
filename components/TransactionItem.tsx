@@ -1,18 +1,20 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import React from "react";
+import Badge from "./Badge";
 
-const TransactionItem = ({ monto, isAlreadyPaid, item, $createdAt }: any) => {
+const TransactionItem = ({ monto, isAlreadyPaid, motivo, $createdAt }: any) => {
   return (
-    <View className="flex flex-row items-center justify-between p-2 bg-red-300 " >
-      <Text className="w-15">{item}</Text>
-      <Text className="w-15">$ {monto}</Text>
-      <Text className="w-15">{$createdAt.substring(0, 10)}</Text>
-      {isAlreadyPaid ? (
-        <Text className="w-15 p-2 bg-green-200 rounded-lg">Pagado</Text>
-      ) : (
-        <Text className="w-15 p-2 bg-yellow-200 rounded-lg">Pendiente</Text>
-      )}
-    </View>
+    <TouchableOpacity className="flex-1 flex-row p-3  items-center">
+      <Text className="flex-1">{motivo}</Text>
+      <Text className="flex-1">$ {monto}</Text>
+      <Text className="flex-1">{$createdAt.substring(0, 10)}</Text>
+
+      {isAlreadyPaid == null
+        ? Badge({ tipo: "Pendiente", size: "md" })
+        : isAlreadyPaid
+        ? Badge({ tipo: "Pagado", size: "md" })
+        : Badge({ tipo: "Rechazado", size: "md" })}
+    </TouchableOpacity>
   );
 };
 
