@@ -2,7 +2,7 @@ import { View, Image, Text, Pressable, TouchableOpacity } from "react-native";
 import React from "react";
 import { Transaction } from "@/app/interfaces/transaction.interface";
 
-const ListItem = ({
+export const ListItem = ({
   monto,
   paid_by,
   $createdAt,
@@ -35,5 +35,3 @@ const ListItem = ({
     </TouchableOpacity>
   );
 };
-
-export default ListItem;

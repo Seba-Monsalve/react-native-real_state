@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { router } from "expo-router";
-import Badge from "./Badge";
+import { Badge } from "./Badge";
 
 export const UserCard = ({ name, $id, noDebt }: any) => {
   const handleOnPressCreateUsser = (id: string) => {

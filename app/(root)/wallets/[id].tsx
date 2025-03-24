@@ -1,12 +1,10 @@
-import { View, Text, Image, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, Image, FlatList,  } from "react-native";
 import React from "react";
-import { router, useLocalSearchParams } from "expo-router";
-import ListItem from "@/components/ListItem";
+import {  useLocalSearchParams } from "expo-router";
 import icons from "@/constants/icons";
-import NavBarBack from "@/components/NavBarBack";
 import { useAppwrite } from "@/lib/useAppwrite";
 import { getTransactionById } from "@/lib/appwrite";
-import Loading from "@/components/Loading";
+import {Loading, NavBarBack,ListItem} from "@/components/";
 
 const Wallet = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -39,7 +37,6 @@ const Wallet = () => {
           <Text className="text-2xl  font-semibold mb-2">
             Transactions: ({data!.total}){" "}
           </Text>
-         
         </View>
         <FlatList
           data={data?.documents}

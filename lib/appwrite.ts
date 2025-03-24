@@ -175,7 +175,6 @@ export const getTransactionById = async ({ id }: { id: string }) => {
       config.databaseId!,
       config.transactionsCollectionId!,
       [Query.equal("createdUsers", id)]
-      
     );
     return res.documents;
   } catch (error) {
@@ -256,12 +255,8 @@ export const createTransaction = async ({
   motivo,
   paid_by,
   createdUsers,
-  id_receiver
+  id_receiver,
 }: any) => {
-  console.log({monto,
-    motivo,
-    paid_by,
-    createdUsers,});
   try {
     const transaction = await databases.createDocument(
       config.databaseId!,
@@ -272,12 +267,69 @@ export const createTransaction = async ({
         motivo,
         paid_by,
         createdUsers,
-        id_receiver
+        id_receiver,
       }
     );
     return transaction;
   } catch (error) {
     console.log("error en createTransaction", error);
+    return false;
+  }
+};
+
+export const updateTransaction = async ({
+  id,
+  isAlreadyPaid,
+}: {
+  id: string;
+  isAlreadyPaid: boolean;
+}) => {
+
+  try {
+    const transaction = await databases.updateDocument(
+      config.databaseId!,
+      config.transactionsCollectionId!,
+      id,
+      { isAlreadyPaid }
+    );
+    return transaction;
+  } catch (error) {
+    console.log("error en updateTransaction", error);
+    return false;
+  }
+};
+
+export const deleteTransaction = async ({ id }: { id: string }) => {
+  try {
+    const transaction = await databases.deleteDocument(
+      config.databaseId!,
+      config.transactionsCollectionId!,
+      id
+    );
+    return transaction;
+  } catch (error) {
+    console.log("error en deleteTransaction", error);
+    return false;
+  }
+};
+
+export const updateDebtStatus = async ({
+  id,
+  noDebt,
+}: {
+  id: string;
+  noDebt: boolean | null;
+}) => {
+  try {
+    const transaction = await databases.updateDocument(
+      config.databaseId!,
+      config.createdUserCollectionId!,
+      id,
+      { noDebt }
+    );
+    return transaction;
+  } catch (error) {
+    console.log("error en updateDebtStatus", error);
     return false;
   }
 };

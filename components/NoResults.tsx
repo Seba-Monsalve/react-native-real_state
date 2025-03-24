@@ -2,7 +2,7 @@ import { View, Image, Text } from "react-native";
 import React from "react";
 import images from "@/constants/images";
 
-const NoResults = () => {
+export const NoResults = () => {
   return (
     <View className=" flex items-center my-5">
       <Image
@@ -17,5 +17,3 @@ const NoResults = () => {
     </View>
   );
 };
-
-export default NoResults;

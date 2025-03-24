@@ -1,9 +1,4 @@
-import ActionItem from "@/components/ActionItem";
-import { Card } from "@/components/Card";
-import Header from "@/components/Header";
-import Loading from "@/components/Loading";
-import SearchBar from "@/components/SearchBar";
-import { UserCard } from "@/components/UserCard";
+import { Card,Header,UserCard ,Loading, SearchBar} from "@/components";
 import icons from "@/constants/icons";
 import { createUser, getCreatedUsers } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-context";
@@ -182,7 +177,6 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) =>{
           return <UserCard {...item}   />}
-
         } 
       />
     </SafeAreaView>

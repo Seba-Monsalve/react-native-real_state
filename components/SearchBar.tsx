@@ -4,7 +4,7 @@ import { router, useLocalSearchParams, usePathname } from "expo-router";
 import icons from "@/constants/icons";
 import { useDebouncedCallback } from "use-debounce";
 
-const SearchBar = () => {
+export const SearchBar = () => {
   const path = usePathname();
 
   const params = useLocalSearchParams<{ query?: string }>();
@@ -43,5 +43,3 @@ const SearchBar = () => {
     </View>
   );
 };
-
-export default SearchBar;

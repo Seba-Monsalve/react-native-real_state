@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 
-const ActionItem = ({ icon, text, onPress }: any) => {
+export const ActionItem = ({ icon, text, onPress }: any) => {
   return (
     <TouchableOpacity
       className="flex flex-col items-center justify-center"
@@ -14,5 +14,3 @@ const ActionItem = ({ icon, text, onPress }: any) => {
     </TouchableOpacity>
   );
 };
-
-export default ActionItem;

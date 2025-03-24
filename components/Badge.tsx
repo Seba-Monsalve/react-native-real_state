@@ -20,12 +20,10 @@ const sizes = {
 import { View, Text } from "react-native";
 import React from "react";
 
-const Badge = ({ tipo, size }: Props) => {
+export const Badge = ({ tipo, size }: Props) => {
   return (
     <View className={`${style[tipo]} rounded-xl w-fit-content`}>
       <Text className={`${sizes[size]} rounded-xl `}>{tipo}</Text>
     </View>
   );
 };
-
-export default Badge;

@@ -3,7 +3,7 @@ import React from "react";
 import { router } from "expo-router";
 import icons from "@/constants/icons";
 
-const NavBarBack = ({ title = "" }: { title?: string }) => {
+export const  NavBarBack = ({ title = "" }: { title?: string }) => {
   return (
     <View className="flex flex-row items-center gap-4 m-2">
       <TouchableOpacity
@@ -18,5 +18,3 @@ const NavBarBack = ({ title = "" }: { title?: string }) => {
     </View>
   );
 };
-
-export default NavBarBack;

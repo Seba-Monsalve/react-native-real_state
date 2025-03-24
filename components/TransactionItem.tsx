@@ -1,10 +1,15 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import Badge from "./Badge";
+import {Badge} from "./Badge";
 
-const TransactionItem = ({ monto, isAlreadyPaid, motivo, $createdAt }: any) => {
+export const TransactionItem = ({monto, isAlreadyPaid, motivo, $createdAt,item,onPress,onLongPress}: any) => {
+  
   return (
-    <TouchableOpacity className="flex-1 flex-row p-3  items-center">
+    <TouchableOpacity
+      className="flex-1 flex-row p-3  items-center"
+      onPress={(isAlreadyPaid) => onPress(isAlreadyPaid)}
+      onLongPress={(isAlreadyPaid) => onLongPress(isAlreadyPaid)}
+    >
       <Text className="flex-1">{motivo}</Text>
       <Text className="flex-1">$ {monto}</Text>
       <Text className="flex-1">{$createdAt.substring(0, 10)}</Text>
@@ -17,5 +22,3 @@ const TransactionItem = ({ monto, isAlreadyPaid, motivo, $createdAt }: any) => {
     </TouchableOpacity>
   );
 };
-
-export default TransactionItem;

@@ -2,7 +2,7 @@ import { View, Text, Image } from "react-native";
 import React from "react";
 import icons from "@/constants/icons";
 
-const Header = ({ avatar, name }: { avatar: string; name: string }) => {
+export const Header = ({ avatar, name }: { avatar: string; name: string }) => {
   return (
     <View className=" flex flex-row justify-between items-center">
       <View className=" flex flex-row items-center">
@@ -21,4 +21,3 @@ const Header = ({ avatar, name }: { avatar: string; name: string }) => {
   );
 };
 
-export default Header;

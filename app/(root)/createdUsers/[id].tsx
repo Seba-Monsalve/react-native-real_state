@@ -6,22 +6,23 @@ import {
   TouchableOpacity,
   TextInput,
   ToastAndroid,
+  Alert,
 } from "react-native";
-import React, {  useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppwrite } from "@/lib/useAppwrite";
 import {
   createTransaction,
+  deleteTransaction,
   getUserById,
+  updateDebtStatus,
+  updateTransaction,
 } from "@/lib/appwrite";
-import Loading from "@/components/Loading";
 import { useLocalSearchParams } from "expo-router";
-import TransactionItem from "@/components/TransactionItem";
-import NavBarBack from "@/components/NavBarBack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Badge from "@/components/Badge";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
 import { useGlobalContext } from "@/lib/global-context";
+import { Badge, Loading, NavBarBack, TransactionItem } from "@/components";
 
 const transaccionFilter = {
   Pagado: "Pagado",
@@ -32,103 +33,190 @@ const transaccionFilter = {
 const UserDetails = () => {
   const { id } = useLocalSearchParams();
   const { user } = useGlobalContext();
-
-  const { data: createdUser, loading } = useAppwrite({
+  const { data, loading } = useAppwrite({
     fn: getUserById,
     params: { id: id.toString() },
   });
 
   const [filter, setFilter] = useState<null | string>("");
-  const [transaction, settransaction] = useState({
+  const [transaction, setTransaction] = useState({
     monto: 0,
     motivo: "",
   });
 
-  if (loading) return <Loading title="Loading..." />;
+  const [createdUser, setcreatedUser] = useState(null);
+
+  useEffect(() => {
+    if (data) {
+      setcreatedUser(data);
+    }
+  }, [data]);
+
+  let timer: number = null;
+  const TIMEOUT = 500;
+
+  const debounce = (onSingle, onDouble) => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+      onDouble();
+    } else {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = null;
+      }, TIMEOUT);
+    }
+  };
+
+  const onChangeStatus = (id: string) => {
+    try {
+      const updatedTransactions = createdUser?.transactions.map(
+        (transaction) => {
+          if (transaction.$id === id) {
+            const paid = transaction.isAlreadyPaid == true ? null : true;
+            updateTransaction({ id: transaction.$id, isAlreadyPaid: paid });
+            return { ...transaction, isAlreadyPaid: paid };
+          }
+          return transaction;
+        }
+      );
+      const noDebt = !updatedTransactions.some(
+        ({ isAlreadyPaid }) => isAlreadyPaid == false || isAlreadyPaid == null
+      );
+      updateDebtStatus({ id: createdUser?.$id, noDebt });
+      setcreatedUser((prev) => ({
+        ...prev,
+        transactions: updatedTransactions,
+        noDebt,
+      }));
+    } catch (error) {
+      console.log(error);
+      ToastAndroid.show("Error al actualizar la transaccion", ToastAndroid.SHORT);
+    }
+  };
+
+  const onLongPress = (id: string) => {
+    Alert.alert("Eliminar ", "Estas seguro de eliminar el registro?", [
+      {
+        text: "Cancelar",
+        onPress: () => console.log("Cancel Pressed"),
+        style: "cancel",
+      },
+      {
+        text: "OK",
+        onPress: () => {
+          deleteTransaction({ id });
+          setcreatedUser((prev) => ({
+            ...prev,
+            transactions: prev.transactions.filter(
+              (transaction) => transaction.$id !== id
+            ),
+          }));
+          ToastAndroid.show("Transaccion eliminada", ToastAndroid.SHORT);
+        },
+      },
+    ]);
+  };
 
   async function handleOnPress() {
     if (transaction.monto <= 0 || transaction.motivo === "") {
       ToastAndroid.show("Por favor llene todos los campos", ToastAndroid.SHORT);
       return;
     }
-    const newTransaction = await createTransaction({
-      monto: transaction.monto,
-      id_receiver: "aasd",
-      motivo: transaction.motivo,
-      paid_by: user?.$id,
-      createdUsers: createdUser?.$id,
-    });
+    try {
+      const newTransaction = await createTransaction({
+        monto: transaction.monto,
+        id_receiver: "aasd",
+        motivo: transaction.motivo,
+        paid_by: user?.$id,
+        createdUsers: createdUser?.$id,
+      });
 
-    if (newTransaction) {
-      ToastAndroid.show("Transaccion creada", ToastAndroid.SHORT);
-      settransaction({ monto: 0, motivo: "" });
-      createdUser?.transacciones.push(newTransaction);
-    } else {
+      if (newTransaction) {
+        ToastAndroid.show("Transaccion creada", ToastAndroid.SHORT);
+        setTransaction({ monto: 0, motivo: "" });
+        setcreatedUser((prev) => ({
+          ...prev,
+          transactions: [...prev.transactions, newTransaction],
+        }));
+      }
+    } catch (error) {
+      console.log(error);
       ToastAndroid.show("Error al crear la transaccion", ToastAndroid.SHORT);
     }
   }
 
+  if (loading && !createdUser) return <Loading title="Loading..." />;
+
   return (
-    <SafeAreaView className="flex-1 py-5 ">
+    <SafeAreaView className="flex-1 py-5">
       <FlatList
-        data={createdUser?.transacciones
-          .filter((item) => {
-            if (filter == "") return item;
-            if (
-              item.isAlreadyPaid == null &&
-              filter === transaccionFilter.Pendiente
-            )
-              return item;
-            if (
-              item.isAlreadyPaid == true &&
-              filter === transaccionFilter.Pagado
-            )
-              return item;
-            if (
-              item.isAlreadyPaid == false &&
-              filter === transaccionFilter.Rechazado
-            )
-              return item;
-          })
-          .reverse()}
-        renderItem={({ item }) => (
-          <View className=" flex flex-row px-3  items-center">
-            <TransactionItem {...item} />
-          </View>
-        )}
+        data={createdUser?.transactions?.filter((item) => {
+          if (filter == "") return item;
+          if (
+            item.isAlreadyPaid == null &&
+            filter === transaccionFilter.Pendiente
+          )
+            return item;
+          if (item.isAlreadyPaid == true && filter === transaccionFilter.Pagado)
+            return item;
+          if (
+            item.isAlreadyPaid == false &&
+            filter === transaccionFilter.Rechazado
+          )
+            return item;
+        })}
+        renderItem={({ item }) => {
+          return (
+            <View className="flex flex-row px-3 items-center">
+              <TransactionItem
+                {...item}
+                onPress={() => debounce(null, () => onChangeStatus(item.$id))}
+                onLongPress={() => onLongPress(item.$id)}
+              />
+            </View>
+          );
+        }}
         ListEmptyComponent={
           <View className="flex flex-col justify-center items-center mt-5">
             <Image className="size-64" source={images.noResult} />
-            <Text className=" text-center mt-5 text-lg font-semibold ">
-              No hay transacciones para este usuario
+            <Text className="text-center mt-5 text-lg font-semibold">
+              No hay transactions para este usuario
             </Text>
           </View>
         }
         ListHeaderComponent={
           <>
-            <NavBarBack title="Detalles" />
-            <HeaderUserDetails user={createdUser} />
-            <View className="flex flex-row justify-center items-center px-5 gap-3 ">
+            {loading && !createdUser && <Loading />}
+
+            {!loading && createdUser && (
+              <>
+                <NavBarBack title="Detalles" />
+                <HeaderUserDetails
+                  user={createdUser}
+                  transactions={createdUser?.transactions}
+                />
+                <View className="flex flex-row justify-center items-center px-5 gap-3">
                   <TextInput
-                    className="flex-1 bg-gray-200 p-2 rounded-lg "
+                    className="flex-1 bg-gray-200 p-2 rounded-lg"
                     placeholder="Motivo"
                     keyboardType="default"
                     onChangeText={(value) =>
-                      settransaction({ ...transaction, motivo: value })
+                      setTransaction({ ...transaction, motivo: value })
                     }
                     value={transaction.motivo}
                   />
                   <TextInput
-                    className="flex-1 bg-gray-200 p-2 rounded-lg "
+                    className="flex-1 bg-gray-200 p-2 rounded-lg"
                     placeholder="Monto"
                     keyboardType="number-pad"
                     onChangeText={(value) =>
-                      settransaction({ ...transaction, monto: +value })
+                      setTransaction({ ...transaction, monto: +value })
                     }
                     value={transaction.monto.toString()}
                   />
                   <TouchableOpacity
-                    className=" p-2 rounded-lg mx-auto  mt-2 gap-3"
+                    className="p-2 rounded-lg mx-auto mt-2 gap-3"
                     onPress={handleOnPress}
                   >
                     <Image
@@ -138,16 +226,13 @@ const UserDetails = () => {
                     />
                   </TouchableOpacity>
                 </View>
-            {createdUser?.transacciones.length > 0 && (
-              <>
-             
-                <View className="">
-                  <Text className=" text-start mx-5 text-sm text-gray-500">
+                <View className="mt-2">
+                  <Text className="text-start mx-5 text-sm text-gray-500">
                     Filtrar Por:
                   </Text>
-                  <View className="flex flex-row gap-2 items-center justify-center mb-2">
+                  <View className="flex flex-row gap-2 items-center justify-center my-2">
                     <TouchableOpacity
-                      className={`px-2 py-1  rounded-full ${
+                      className={`px-2 py-1 rounded-full ${
                         filter === transaccionFilter.Pagado
                           ? "bg-green-200"
                           : ""
@@ -163,7 +248,7 @@ const UserDetails = () => {
                       <Text>Pagado</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      className={`px-2 py-1  rounded-full ${
+                      className={`px-2 py-1 rounded-full ${
                         filter === transaccionFilter.Pendiente
                           ? "bg-yellow-200"
                           : ""
@@ -179,7 +264,7 @@ const UserDetails = () => {
                       <Text>Pendiente</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      className={`px-2 py-1  rounded-full ${
+                      className={`px-2 py-1 rounded-full ${
                         filter === transaccionFilter.Rechazado
                           ? "bg-red-200"
                           : ""
@@ -197,7 +282,7 @@ const UserDetails = () => {
                   </View>
                 </View>
 
-                <View className=" flex-row mx-5 mt-2 ">
+                <View className="flex-row mx-5 mt-2">
                   <Text className="flex-1 font-semibold text-lg">Razon</Text>
                   <Text className="flex-1 font-semibold text-lg">Monto</Text>
                   <Text className="flex-1 font-semibold text-lg">
@@ -217,45 +302,47 @@ const UserDetails = () => {
 export default UserDetails;
 
 const HeaderUserDetails = ({ user }: any) => {
-  return (
-    <>
-      <View className=" flex flex-row justify-center items-center p-2 gap-5">
-        <Image
-          source={{
-            uri: "https://e7.pngegg.com/pngimages/84/165/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper-thumbnail.png",
-          }}
-          className="size-20 rounded-full"
-          resizeMode="contain"
-        />
+  if (!user) return <Loading title="Loading..." />;
 
-        <View className="flex flex-col items-center gap-2">
-          <Text className="text-3xl">{user?.name}</Text>
-          {user?.transacciones.some((item) => !item.isAlreadyPaid) ? (
-            <Badge tipo="Con deuda" size="lg" />
-          ) : (
-            <Badge tipo="Al dia" size="lg" />
-          )}
-        </View>
-        <View className="flex flex-col">
-          <Text>Nro Transacciones : {user?.transacciones.length}</Text>
-          <Text>
-            Pendiente: ${" "}
-            {user?.transacciones
-              .filter((item) => !item.isAlreadyPaid)
-              .reduce((total, item) => total + item.monto, 0)}
-          </Text>
-          <Text>
-            Pagado: ${" "}
-            {user?.transacciones
-              .filter((item) => item.isAlreadyPaid)
-              .reduce((total, item) => total + item.monto, 0)}
-          </Text>
-          <Text className="text-2xl font-semibold">
-            Total : ${" "}
-            {user?.transacciones.reduce((total, item) => total + item.monto, 0)}
-          </Text>
-        </View>
+  return (
+    <View className="flex   flex-row justify-around items-center p-2 gap-5">
+      <Image
+        source={{
+          uri: "https://e7.pngegg.com/pngimages/84/165/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper-thumbnail.png",
+        }}
+        className="size-20 rounded-full"
+        resizeMode="contain"
+      />
+      <View className="flex  flex-1 flex-col items-center gap-2">
+        <Text className="text-3xl">{user.name}</Text>
+
+        {user.transactions.some(
+          ({ isAlreadyPaid }) => isAlreadyPaid == false || isAlreadyPaid == null
+        ) == true ? (
+          <Badge tipo="Con deuda" size="lg" />
+        ) : (
+          <Badge tipo="Al dia" size="lg" />
+        )}
       </View>
-    </>
+      <View className="flex  flex-1 flex-col">
+        <Text>Nro transactions : {user.transactions.length}</Text>
+        <Text>
+          Pendiente: ${" "}
+          {user.transactions
+            .filter((item) => !item.isAlreadyPaid)
+            .reduce((total, item) => total + item.monto, 0)}
+        </Text>
+        <Text>
+          Pagado: ${" "}
+          {user.transactions
+            .filter((item) => item.isAlreadyPaid)
+            .reduce((total, item) => total + item.monto, 0)}
+        </Text>
+        <Text className="text-2xl font-semibold">
+          Total : ${" "}
+          {user.transactions.reduce((total, item) => total + item.monto, 0)}
+        </Text>
+      </View>
+    </View>
   );
 };
