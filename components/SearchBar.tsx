@@ -4,8 +4,7 @@ import { router, useLocalSearchParams, usePathname } from "expo-router";
 import icons from "@/constants/icons";
 import { useDebouncedCallback } from "use-debounce";
 
-export const SearchBar = () => {
-  const path = usePathname();
+export const SearchBar = ({ placeholder }: { placeholder?: string }) => {
 
   const params = useLocalSearchParams<{ query?: string }>();
 
@@ -22,14 +21,15 @@ export const SearchBar = () => {
   };
 
   return (
-    <View className="flex-row items-center justify-between  px-5  rounded-lg bg-accent-100 border border-primary-100 mt-2 py-2">
-      <Image source={icons.search} className="size-5" />
+    <View className="flex-row items-center justify-between px-5  rounded-lg bg-accent-100 border border-primary-100 mt-2 py-2 ">
+      <Image source={icons.search} className="size-6" />
       <TextInput
+      cursorColor={"#191D31"}
         value={search}
         onChangeText={handleSearch}
         inputMode="text"
-        placeholder="Search an user"
-        className=" font-rubik text-black-300 ml-2 flex-1"
+        placeholder={placeholder}
+        className=" font-rubik text-black-300 ml-2 flex-1   "
         scrollEnabled={false}
       />
       <TouchableOpacity
@@ -38,7 +38,11 @@ export const SearchBar = () => {
           router.setParams({ query: "" });
         }}
       >
-        <Image source={icons.clear} className="size-6" />
+        <Image
+          source={icons.clear}
+          className="size-6  "
+          tintColor={"#191D31"}
+        />
       </TouchableOpacity>
     </View>
   );

@@ -40,7 +40,7 @@ const UserDetails = () => {
 
   const [filter, setFilter] = useState<null | string>("");
   const [transaction, setTransaction] = useState({
-    monto: 0,
+    monto: "",
     motivo: "",
   });
 
@@ -90,8 +90,10 @@ const UserDetails = () => {
         noDebt,
       }));
     } catch (error) {
-      console.log(error);
-      ToastAndroid.show("Error al actualizar la transaccion", ToastAndroid.SHORT);
+      ToastAndroid.show(
+        "Error al actualizar la transaccion",
+        ToastAndroid.SHORT
+      );
     }
   };
 
@@ -126,22 +128,23 @@ const UserDetails = () => {
     try {
       const newTransaction = await createTransaction({
         monto: transaction.monto,
-        id_receiver: "aasd",
         motivo: transaction.motivo,
-        paid_by: user?.$id,
+        creditor: user?.$id,
         createdUsers: createdUser?.$id,
       });
 
       if (newTransaction) {
-        ToastAndroid.show("Transaccion creada", ToastAndroid.SHORT);
-        setTransaction({ monto: 0, motivo: "" });
+        setTransaction({ monto: "", motivo: "" });
         setcreatedUser((prev) => ({
           ...prev,
-          transactions: [...prev.transactions, newTransaction],
+          transactions: [...prev!.transactions, newTransaction],
+          noDebt: null,
         }));
+        updateDebtStatus({ id: createdUser?.$id, noDebt: false });
+
+        ToastAndroid.show("Transaccion creada", ToastAndroid.SHORT);
       }
     } catch (error) {
-      console.log(error);
       ToastAndroid.show("Error al crear la transaccion", ToastAndroid.SHORT);
     }
   }
@@ -151,21 +154,26 @@ const UserDetails = () => {
   return (
     <SafeAreaView className="flex-1 py-5">
       <FlatList
-        data={createdUser?.transactions?.filter((item) => {
-          if (filter == "") return item;
-          if (
-            item.isAlreadyPaid == null &&
-            filter === transaccionFilter.Pendiente
-          )
-            return item;
-          if (item.isAlreadyPaid == true && filter === transaccionFilter.Pagado)
-            return item;
-          if (
-            item.isAlreadyPaid == false &&
-            filter === transaccionFilter.Rechazado
-          )
-            return item;
-        })}
+        data={createdUser?.transactions
+          ?.filter((item) => {
+            if (filter == "") return item;
+            if (
+              item.isAlreadyPaid == null &&
+              filter === transaccionFilter.Pendiente
+            )
+              return item;
+            if (
+              item.isAlreadyPaid == true &&
+              filter === transaccionFilter.Pagado
+            )
+              return item;
+            if (
+              item.isAlreadyPaid == false &&
+              filter === transaccionFilter.Rechazado
+            )
+              return item;
+          })
+          .reverse()}
         renderItem={({ item }) => {
           return (
             <View className="flex flex-row px-3 items-center">
@@ -216,14 +224,11 @@ const UserDetails = () => {
                     value={transaction.monto.toString()}
                   />
                   <TouchableOpacity
-                    className="p-2 rounded-lg mx-auto mt-2 gap-3"
+                    className="p-2 rounded-lg mx-auto   flex flex-col items-center justify-center "
                     onPress={handleOnPress}
                   >
-                    <Image
-                      source={icons.add}
-                      tintColor={"white"}
-                      className="size-8 bg-green-500 rounded-full p-2"
-                    />
+                    <Text className="text-center text-md text-white bg-primary-300  p-2 rounded-lg">Agregar</Text>
+                  
                   </TouchableOpacity>
                 </View>
                 <View className="mt-2">
@@ -282,13 +287,11 @@ const UserDetails = () => {
                   </View>
                 </View>
 
-                <View className="flex-row mx-5 mt-2">
+                <View className="flex-row mx-7 mt-2 justify-center items-center gap-5">
                   <Text className="flex-1 font-semibold text-lg">Razon</Text>
                   <Text className="flex-1 font-semibold text-lg">Monto</Text>
-                  <Text className="flex-1 font-semibold text-lg">
-                    Creado en
-                  </Text>
-                  <Text className="flex-1 font-semibold text-lg">Estado</Text>
+                  <Text className="flex-2 font-semibold text-lg">Estado</Text>
+                  <Text className="flex-1 font-semibold text-lg"></Text>
                 </View>
               </>
             )}
@@ -305,14 +308,14 @@ const HeaderUserDetails = ({ user }: any) => {
   if (!user) return <Loading title="Loading..." />;
 
   return (
-    <View className="flex   flex-row justify-around items-center p-2 gap-5">
-      <Image
+    <View className="flex-1   flex-row justify-around items-center p-2 gap-5">
+      {/* <Image
         source={{
           uri: "https://e7.pngegg.com/pngimages/84/165/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper-thumbnail.png",
         }}
         className="size-20 rounded-full"
         resizeMode="contain"
-      />
+      /> */}
       <View className="flex  flex-1 flex-col items-center gap-2">
         <Text className="text-3xl">{user.name}</Text>
 
@@ -326,7 +329,7 @@ const HeaderUserDetails = ({ user }: any) => {
       </View>
       <View className="flex  flex-1 flex-col">
         <Text>Nro transactions : {user.transactions.length}</Text>
-        <Text>
+        <Text className="">
           Pendiente: ${" "}
           {user.transactions
             .filter((item) => !item.isAlreadyPaid)

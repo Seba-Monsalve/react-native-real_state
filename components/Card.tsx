@@ -14,7 +14,7 @@ export const Card = ({ item, onPress }: any) => {
 
   return (
     <TouchableOpacity
-      className={` w-100 mr-3 bg-red-800   rounded-lg p-5 `}
+      className={` w-100 mr-3 bg-primary-300   rounded-lg p-5 `}
       onPress={() => onPress()}
     >
       <Text className="text-3xl text-gray-200 font-bold ">Personal</Text>

@@ -11,12 +11,12 @@ export const Header = ({ avatar, name }: { avatar: string; name: string }) => {
           <Text className="text-xs font-rubik text-black-100">
             Good Morning
           </Text>
-          <Text className=" font-rubik-medium text-black-300 text-base">
+          <Text className=" font-rubik-medium text-black-300 text-base ">
             {name}
           </Text>
         </View>
       </View>
-        <Image source={icons.shield} className="size-10" tintColor={"red"} />
+        <Image source={icons.shield} className="size-10" tintColor={"#214271"} />
     </View>
   );
 };

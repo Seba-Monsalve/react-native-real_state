@@ -33,50 +33,56 @@ const TabIcon = ({
 
 const TabsLayout = () => {
   return (
-      <Tabs
-        screenOptions={{
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            backgroundColor: "white",
-            position: "absolute",
-            borderTopColor: "#0061ff1a",
-            borderTopWidth: 1,
-            minHeight: 70,
-          },
-          tabBarHideOnKeyboard: true
+    <Tabs
+      screenOptions={{
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "white",
+          position: "absolute",
+          borderTopColor: "#0061ff1a",
+          borderTopWidth: 1,
+          minHeight: 70,
+        },
+        tabBarHideOnKeyboard: true,
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+
+        options={{
+          animation:'fade',
+          title: "Home",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon={icons.home} focused={focused} title="Home" />
+          ),
+          
         }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <TabIcon icon={icons.home} focused={focused} title="Home" />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="Explore"
-          options={{
-            title: "Explore",
-            headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <TabIcon icon={icons.search} focused={focused} title="Explore" />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="Profile"
-          options={{
-            title: "Profile",
-            headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <TabIcon icon={icons.person} focused={focused} title="Profile" />
-            ),
-          }}
-        />
-      </Tabs>
+      />
+      <Tabs.Screen
+        name="Explore"
+        options={{
+          animation:'fade',
+          title: "Explore",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon={icons.search} focused={focused} title="Explore" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Profile"
+        options={{
+          animation:'fade',
+
+          title: "Profile",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon icon={icons.person} focused={focused} title="Profile" />
+          ),
+        }}
+      />
+    </Tabs>
   );
 };
 

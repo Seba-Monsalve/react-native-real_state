@@ -21,6 +21,10 @@ export const config = {
     process.env.EXPO_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTIONS_ID,
   createdUserCollectionId:
     process.env.EXPO_PUBLIC_APPWRITE_CREATED_USERS_COLLECTIONS_ID,
+  organizationsCollectionId:
+    process.env.EXPO_PUBLIC_APPWRITE_ORGANIZATIONS_COLLECTIONS_ID,
+  organizationsRequestCollectionId:
+    process.env.EXPO_PUBLIC_APPWRITE_ORGANIZATIONS_REQUEST_COLLECTIONS_ID,
 };
 
 export const client = new Client()
@@ -119,19 +123,19 @@ export async function getCurrentUser() {
   }
 }
 
-export const getTransactions = async () => {
-  try {
-    const res = await databases.listDocuments(
-      config.databaseId!,
-      config.transactionsCollectionId!,
-      [Query.orderAsc("$createdAt")]
-    );
-    return res.documents;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
+// export const getTransactions = async () => {
+//   try {
+//     const res = await databases.listDocuments(
+//       config.databaseId!,
+//       config.transactionsCollectionId!,
+//       [Query.orderDesc("$createdAt")]
+//     );
+//     return res.documents;
+//   } catch (error) {
+//     console.log(error);
+//     return [];
+//   }
+// };
 
 // export const getProperties = async ({
 //   filter,
@@ -253,9 +257,8 @@ export const createUser = async ({
 export const createTransaction = async ({
   monto,
   motivo,
-  paid_by,
   createdUsers,
-  id_receiver,
+  creditor,
 }: any) => {
   try {
     const transaction = await databases.createDocument(
@@ -265,9 +268,8 @@ export const createTransaction = async ({
       {
         monto,
         motivo,
-        paid_by,
         createdUsers,
-        id_receiver,
+        creditor,
       }
     );
     return transaction;
@@ -284,7 +286,6 @@ export const updateTransaction = async ({
   id: string;
   isAlreadyPaid: boolean;
 }) => {
-
   try {
     const transaction = await databases.updateDocument(
       config.databaseId!,
@@ -330,6 +331,69 @@ export const updateDebtStatus = async ({
     return transaction;
   } catch (error) {
     console.log("error en updateDebtStatus", error);
+    return false;
+  }
+};
+
+// ORRGANIZATIONS
+
+export const getOrganizations = async () => {
+  try {
+    const organizations = await databases.listDocuments(
+      config.databaseId!,
+      config.organizationsCollectionId!,
+      [Query.orderAsc("$createdAt")]
+    );
+    return organizations;
+  } catch (error) {
+    console.log("error en getOrganizations", error);
+    return false;
+  }
+};
+
+export const getOrganizationById = async ({ id }: any) => {
+  try {
+    const organization = await databases.getDocument(
+      config.databaseId!,
+      config.organizationsCollectionId!,
+      id
+    );
+    return organization;
+  } catch (error) {
+    console.log("error en getOrganizationById", error);
+    return false;
+  }
+};
+
+export const getOrganizationRequestById = async ({ user_id, org_id }: any)  => {
+  try {
+    const requests = await databases.listDocuments(
+      config.databaseId!,
+      config.organizationsRequestCollectionId!,
+      [Query.equal("user", user_id),
+      Query.equal("organization", org_id)]
+    );
+    return requests;
+  } catch (error) {
+    console.log("error en getOrganizationById", error);
+    return false;
+  }
+};
+
+export const createOrganizationRequest = async ({ user_id, org_id }: any) => {
+  try {
+    const request = await databases.createDocument(
+      config.databaseId!,
+      config.organizationsRequestCollectionId!,
+      ID.unique(),
+      {
+        user: user_id,
+        organization: org_id,
+      }
+    );
+    return true;
+  } catch (error) {
+    console.log("error en getOrganizationRequestById", error);
     return false;
   }
 };

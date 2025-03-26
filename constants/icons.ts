@@ -33,8 +33,10 @@ import location from "@/assets/icons/location.png";
 import edit from "@/assets/icons/edit.png";
 import add from "@/assets/icons/add.png";
 import clear from "@/assets/icons/delete.png";
+import transparency from "@/assets/icons/transparency.png";
 
 export default {
+  transparency,
   google,
   home,
   search,

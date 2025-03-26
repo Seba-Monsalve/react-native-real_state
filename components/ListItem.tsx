@@ -4,7 +4,7 @@ import { Transaction } from "@/app/interfaces/transaction.interface";
 
 export const ListItem = ({
   monto,
-  paid_by,
+  creditor,
   $createdAt,
   isAlreadyPaid,
 }: Transaction) => {
@@ -21,7 +21,7 @@ export const ListItem = ({
           }}
         />
         <View className=" flex flex-col gap-1s justify-center items-center ml-2">
-          <Text className="font-semibold">{paid_by.name}</Text>
+          <Text className="font-semibold">{creditor.name}</Text>
           <Text className="text-gray-500">{$createdAt.substring(0, 10)}</Text>
         </View>
       </View>

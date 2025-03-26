@@ -1,4 +1,5 @@
-import { Card,Header,UserCard ,Loading, SearchBar} from "@/components";
+import { showToast } from "@/app/utils/Toast";
+import { Card, Header, UserCard, Loading, SearchBar } from "@/components";
 import icons from "@/constants/icons";
 import { createUser, getCreatedUsers } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-context";
@@ -8,25 +9,20 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   FlatList,
   TextInput,
   Modal,
   ToastAndroid,
   ScrollView,
-  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const { user } = useGlobalContext();
 
-  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
 
-  const showToast = (message: string) => {
-    ToastAndroid.show(message, ToastAndroid.TOP);
-  };
+  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
 
   const {
     data: createdUsers,
@@ -47,7 +43,7 @@ export default function Index() {
   };
 
   return (
-    <SafeAreaView className=" bg-[#eee] p-6 flex-1">
+    <SafeAreaView className=" bg-[#eee] mt-5 flex-1">
       <FlatList
         data={createdUsers?.filter((user) => {
           if (params.query != "" && params.query)
@@ -57,7 +53,11 @@ export default function Index() {
           return createdUsers;
         })}
         keyExtractor={(item) => item.$id}
-        contentContainerClassName="pb-20 "
+        contentContainerClassName="pb-20 gap-2"
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => {
+          return <UserCard {...item} />;
+        }}
         numColumns={3}
         ListEmptyComponent={
           <>
@@ -73,7 +73,7 @@ export default function Index() {
           </>
         }
         ListHeaderComponent={
-          <>
+          <ScrollView className="mx-5">
             <Header avatar={user?.avatar!} name={user?.name!} />
             <View className="mt-3">
               <FlatList
@@ -123,7 +123,7 @@ export default function Index() {
                       }}
                       placeholder=""
                       keyboardType="default"
-                      className="text-sm bg-gray-200 rounded-lg w-2/3 "
+                      className="text-sm bg-gray-200 rounded-lg w-2/3  "
                     />
                   </View>
 
@@ -161,23 +161,17 @@ export default function Index() {
 
             <View className="  flex-1 flex-col justify-around items-center mt-4 mb-2">
               <View className=" flex flex-row justify-between items-center w-full px-4 gap-3">
-                <Text className="text-2xl font-semsibold ">Tus usuarios </Text>
+                <Text className="text-2xl font-semsibold text-black-300 ">Tus usuarios </Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  <Image
-                    source={icons.add}
-                    tintColor={"white"}
-                    className=" w-8 h-8 p-5 bg-green-500 rounded-full"
-                  />
+                  <Text className="px-2 p-1 text-lg font-semibold rounded-lg  text-white bg-primary-300">Agregar</Text>
+                 
                 </TouchableOpacity>
               </View>
-              <SearchBar />
+              <SearchBar placeholder="Buscar Usuario" />
             </View>
-          </>
+          </ScrollView>
         }
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) =>{
-          return <UserCard {...item}   />}
-        } 
+      
       />
     </SafeAreaView>
   );

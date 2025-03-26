@@ -10,12 +10,13 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
-import { login } from "@/lib/appwrite";
+import { login, logout } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-context";
-import { Redirect, useRouter } from "expo-router";
+
+import { Redirect } from "expo-router";
 
 export function SignIn() {
-  const { refetch, loading, isLogged } = useGlobalContext();
+  const { refetch, loading, isLogged, log } = useGlobalContext();
   if (!loading && isLogged) {
     return <Redirect href="/" />;
   }
@@ -26,6 +27,7 @@ export function SignIn() {
       refetch();
     } else {
       Alert.alert("Error", "Login failed");
+      logout();
     }
   }
 

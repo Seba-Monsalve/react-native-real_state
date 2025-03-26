@@ -9,13 +9,13 @@ export const UserCard = ({ name, $id, noDebt }: any) => {
   };
 
   return (
-    <TouchableOpacity
-      className="m-2"
+    <TouchableOpacity 
+    className="ml-4"
       onPress={() => {
         handleOnPressCreateUsser($id);
       }}
     >
-      <View className="flex flex-row  w-[100px] shadow-l  p-2 rounded-xl bg-white   ">
+      <View className="flex flex-row  w-[100px] shadow-l  p-2 rounded-xl bg-white  ">
         {/* <View className="flex flex-row  ">
           <Image
             className="size-20 rounded-full"
