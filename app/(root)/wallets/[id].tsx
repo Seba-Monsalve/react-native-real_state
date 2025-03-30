@@ -2,26 +2,17 @@ import { View, Text, Image, FlatList,  } from "react-native";
 import React from "react";
 import {  useLocalSearchParams } from "expo-router";
 import icons from "@/constants/icons";
-import { useAppwrite } from "@/lib/useAppwrite";
-import { getTransactionById } from "@/lib/appwrite";
 import {Loading, NavBarBack,ListItem} from "@/components/";
 
 const Wallet = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
 
-  const { data, loading } = useAppwrite({
-    fn: getTransactionById,
-    params: { id: id! },
-  });
-  if (loading) return <Loading title="Loading" />;
 
-  const documentos = data?.documents || [];
-  const sumValues = documentos.reduce((total, item) => total + item.monto, 0);
   return (
     <View className="flex-1 mt-5 px-3 mx-2">
       <View className="flex flex-row items-center justify-between ">
         <NavBarBack />
-        <Text className="text-3xl font-semibold text-gray-800">Summary</Text>
+        <Text className="text-3xl font-semibold text-gray-800">Summary {id}</Text>
         <View className="bg-white rounded-full p-2">
           <Image source={icons.info} className="size-7" />
         </View>
@@ -29,23 +20,14 @@ const Wallet = () => {
 
       <View className=" mt-5">
         <Text className="text-xl text-gray-600">Total:</Text>
-        <Text className="text-5xl text-gray-800 mt-5">$ {sumValues}</Text>
       </View>
 
       <View className="flex-1 px-2 mt-5">
         <View className="flex flex-row items-center justify-between">
           <Text className="text-2xl  font-semibold mb-2">
-            Transactions: ({data!.total}){" "}
           </Text>
         </View>
-        <FlatList
-          data={data?.documents}
-          contentContainerStyle={{ paddingBottom: 30, marginTop: 5 }}
-          showsVerticalScrollIndicator={false}
-          bounces={true}
-          renderItem={({ item }) => <ListItem {...item} />}
-          keyExtractor={(item, index) => item.$id}
-        />
+        
       </View>
     </View>
   );

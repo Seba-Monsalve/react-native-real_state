@@ -8,12 +8,12 @@ import {
   Alert,
 } from "react-native";
 import React from "react";
-import { useGlobalContext } from "@/lib/global-context";
 import { logout } from "@/lib/appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { settings } from "@/constants/data";
+import { useUserStore } from "@/store/user.store";
 
 interface SettingItemProps {
   title: string;
@@ -48,7 +48,8 @@ const SettingItem = ({
 };
 
 const Profile = () => {
-  const { refetch, user } = useGlobalContext();
+  const user = useUserStore((state) => state.user);
+  const refetch = useUserStore((state) => state.user);
 
   const handleLogout = async () => {
     const result = await logout();

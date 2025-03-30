@@ -25,7 +25,6 @@ const Organization = () => {
 
   useEffect(() => {
     if (data) setorganization(data);
-    console.log({ data });
   }, [data]);
 
   if (loading) return <Loading />;

@@ -3,15 +3,16 @@ import {
   createOrganizationRequest,
   getOrganizationRequestById,
 } from "@/lib/appwrite";
-import { useGlobalContext } from "@/lib/global-context";
 import { useAppwrite } from "@/lib/useAppwrite";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Loading } from "./Loading";
 import { showToast } from "@/app/utils/Toast";
 import { useEffect, useState } from "react";
+import { useUserStore } from "@/store/user.store";
 
 export const OrganizationCard = ({ organization }: any) => {
-  const user = useGlobalContext();
+  const user = useUserStore(state =>state.user)
+
   const {
     name,
     description,

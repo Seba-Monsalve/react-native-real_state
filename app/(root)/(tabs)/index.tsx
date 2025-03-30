@@ -1,11 +1,9 @@
 import { showToast } from "@/app/utils/Toast";
-import { Card, Header, UserCard, Loading, SearchBar } from "@/components";
-import icons from "@/constants/icons";
-import { createUser, getCreatedUsers } from "@/lib/appwrite";
-import { useGlobalContext } from "@/lib/global-context";
-import { useAppwrite } from "@/lib/useAppwrite";
+import { WalletCard, Header, UserCard, Loading, SearchBar } from "@/components";
+import { createUser } from "@/lib/appwrite";
+import { useUserStore } from "@/store/user.store";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,26 +11,22 @@ import {
   FlatList,
   TextInput,
   Modal,
-  ToastAndroid,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
-  const { user } = useGlobalContext();
-
+  const user = useUserStore((state) => state.user);
+  const updateUser = useUserStore((action) => action.updateUser);
+  const refetch = useUserStore((state) => state.refetch);
+  const loading = useUserStore((state) => state.loading);
 
   const params = useLocalSearchParams<{ query?: string; filter?: string }>();
-
-  const {
-    data: createdUsers,
-    loading,
-    refetch,
-  } = useAppwrite({
-    fn: getCreatedUsers,
-    params: { id: user!.$id },
-  });
   const [modalVisible, setModalVisible] = useState(false);
+
+
+
   const [action, setaction] = useState<{ name: string; created_by: string }>({
     name: "",
     created_by: "",
@@ -42,34 +36,29 @@ export default function Index() {
     router.push(`/wallets/${id}`);
   };
 
+
   return (
     <SafeAreaView className=" bg-[#eee] mt-5 flex-1">
       <FlatList
-        data={createdUsers?.filter((user) => {
+        data={user?.createdUsers?.filter((user) => {
           if (params.query != "" && params.query)
             return user.name
               .toLowerCase()
               .includes(params.query?.toLowerCase());
-          return createdUsers;
+          return user;
         })}
         keyExtractor={(item) => item.$id}
         contentContainerClassName="pb-20 gap-2"
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
-          return <UserCard {...item} />;
+          return <UserCard {...item}  />;
         }}
         numColumns={3}
         ListEmptyComponent={
           <>
-            {loading ? (
-              <View className="mt-7">
-                <Loading />
-              </View>
-            ) : (
-              <Text className="mt-5 text-center text-xl">
-                No hay resultados para la busqueda
-              </Text>
-            )}
+            <Text className="mt-5 text-center text-xl">
+              No hay resultados para la busqueda
+            </Text>
           </>
         }
         ListHeaderComponent={
@@ -79,10 +68,27 @@ export default function Index() {
               <FlatList
                 pagingEnabled
                 horizontal
-                data={[1]}
-                renderItem={({ item }) => (
-                  <Card onPress={() => handleOnPressWallet(user!.$id)} />
+                data={ [
+                  {
+                    name: "Personal",
+                    $id: user?.$id,
+                    transactions:user.createdUsers?.flatMap((user) => user.transactions),
+                  },
+                ].concat(
+                  user?.memberOf.map((item) => ({
+                    name: item.name,
+                    transactions: item.transactions,
+                  }))
                 )}
+                renderItem={({ item }) => {
+                  return (
+                    <WalletCard
+                      title={item.name}
+                      item={item.transactions}
+                      onPress={() => handleOnPressWallet(item!.$id)}
+                    />
+                  );
+                }}
               />
             </View>
             {/* Barra notificar */}
@@ -145,10 +151,15 @@ export default function Index() {
                           ...action,
                           created_by: user!.$id,
                         });
+                        updateUser({
+                          ...user,
+                          createdUsers: [...user.createdUsers].concat(
+                            createdUser
+                          ),
+                        });
                         createdUser
                           ? showToast("usuario creado con exito")
                           : showToast("Error al crear usuario");
-                        refetch({ id: user!.$id });
                         setModalVisible(!modalVisible);
                       }}
                     >
@@ -161,17 +172,20 @@ export default function Index() {
 
             <View className="  flex-1 flex-col justify-around items-center mt-4 mb-2">
               <View className=" flex flex-row justify-between items-center w-full px-4 gap-3">
-                <Text className="text-2xl font-semsibold text-black-300 ">Tus usuarios </Text>
+                <Text className="text-2xl font-semsibold text-black-300 ">
+                  Tus usuarios{" "}
+                </Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  <Text className="px-2 p-1 text-lg font-semibold rounded-lg  text-white bg-primary-300">Agregar</Text>
-                 
+                  <Text className="px-2 p-1 text-lg font-semibold rounded-lg  text-white bg-primary-300">
+                    Agregar
+                  </Text>
                 </TouchableOpacity>
               </View>
               <SearchBar placeholder="Buscar Usuario" />
             </View>
+            {/* <Text>{JSON.stringify(user.transactions)}</Text> */}
           </ScrollView>
         }
-      
       />
     </SafeAreaView>
   );

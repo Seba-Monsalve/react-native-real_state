@@ -9,6 +9,7 @@ import {
 } from "react-native-appwrite";
 import * as Linking from "expo-linking";
 import { openAuthSessionAsync } from "expo-web-browser";
+import { Transaction } from "@/app/interfaces/user.interface";
 
 export const config = {
   platform: "com.imaginaryInc.real-state",
@@ -109,7 +110,6 @@ export async function getCurrentUser() {
     );
     if (user) {
       const userAvatar = avatar.getInitials(result.name);
-      console.log(user);
       return {
         ...user,
         avatar: user.avatar || userAvatar.toString(),
@@ -178,7 +178,7 @@ export const getTransactionById = async ({ id }: { id: string }) => {
     const res = await databases.listDocuments(
       config.databaseId!,
       config.transactionsCollectionId!,
-      [Query.equal("createdUsers", id)]
+      [Query.equal("creditor", id)]
     );
     return res.documents;
   } catch (error) {
@@ -235,7 +235,7 @@ export const createUser = async ({
 }: {
   name: string;
   created_by: string;
-}): Promise<boolean> => {
+}): Promise<any> => {
   try {
     const user = await databases.createDocument(
       config.databaseId!,
@@ -246,8 +246,7 @@ export const createUser = async ({
         created_by,
       }
     );
-    console.log(user);
-    return true;
+    return user;
   } catch (error) {
     console.log("error en createUser", error);
     return false;
@@ -259,7 +258,7 @@ export const createTransaction = async ({
   motivo,
   createdUsers,
   creditor,
-}: any) => {
+}: Transaction) => {
   try {
     const transaction = await databases.createDocument(
       config.databaseId!,
@@ -365,13 +364,12 @@ export const getOrganizationById = async ({ id }: any) => {
   }
 };
 
-export const getOrganizationRequestById = async ({ user_id, org_id }: any)  => {
+export const getOrganizationRequestById = async ({ user_id, org_id }: any) => {
   try {
     const requests = await databases.listDocuments(
       config.databaseId!,
       config.organizationsRequestCollectionId!,
-      [Query.equal("user", user_id),
-      Query.equal("organization", org_id)]
+      [Query.equal("user", user_id), Query.equal("organization", org_id)]
     );
     return requests;
   } catch (error) {

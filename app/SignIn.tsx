@@ -11,20 +11,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
 import { login, logout } from "@/lib/appwrite";
-import { useGlobalContext } from "@/lib/global-context";
 
 import { Redirect } from "expo-router";
+import { useUserStore } from "@/store/user.store";
 
 export function SignIn() {
-  const { refetch, loading, isLogged, log } = useGlobalContext();
-  if (!loading && isLogged) {
+  const user = useUserStore((state) => state.user);
+  const loading = useUserStore((state) => state.loading);
+  const refetch = useUserStore((state) => state.refetch);
+
+  if (!loading && !!user) {
     return <Redirect href="/" />;
   }
 
   async function handleLogin() {
     const result = await login();
     if (result) {
-      refetch();
+      refetch({});
     } else {
       Alert.alert("Error", "Login failed");
       logout();
@@ -39,7 +42,7 @@ export function SignIn() {
           className="w-full h-4/6"
           resizeMode="contain"
         />
-        <Text className="text-black"> {isLogged ? "si log" : "no log"}</Text>
+        <Text className="text-black"> {user!! ? "si log" : "no log"}</Text>
 
         <View className=" px-10">
           <Text className="text-base text-center uppercase font-rubik text-black-200">

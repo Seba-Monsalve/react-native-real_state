@@ -1,6 +1,6 @@
 export * from "./ActionItem";
 export * from "./Badge";
-export * from "./Card";
+export * from "./WalletCard";
 export * from "./ListItem";
 export * from "./Loading";
 export * from "./NavBarBack";

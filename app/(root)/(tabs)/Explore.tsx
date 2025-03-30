@@ -1,15 +1,16 @@
 import { Header, Loading, NavBarBack, SearchBar } from "@/components";
 import { OrganizationCard } from "@/components/OrganizationCard";
 import { getOrganizations } from "@/lib/appwrite";
-import GlobalProvider, { useGlobalContext } from "@/lib/global-context";
 import { useAppwrite } from "@/lib/useAppwrite";
+import { useUserStore } from "@/store/user.store";
 import { useLocalSearchParams, useSearchParams } from "expo-router/build/hooks";
 import { useEffect, useState } from "react";
 import { FlatList, ScrollView, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Explore() {
-  const { user } = useGlobalContext();
+  const { user } = useUserStore(state =>state.user);
+  
   const { data, loading } = useAppwrite({
     fn: getOrganizations,
   });

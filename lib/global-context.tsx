@@ -1,8 +1,13 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
 
 import { getCurrentUser } from "./appwrite";
 import { useAppwrite } from "./useAppwrite";
-import { Redirect } from "expo-router";
 
 interface GlobalContextType {
   isLogged: boolean;
@@ -32,14 +37,15 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
   } = useAppwrite({
     fn: getCurrentUser,
   });
+
   const isLogged = !!user;
 
   return (
     <GlobalContext.Provider
       value={{
         isLogged,
-        user,
         loading,
+        user,
         refetch,
       }}
     >

@@ -5,12 +5,9 @@ import SearchBar from "@/components/SearchBar";
 import { useAppwrite } from "@/lib/useAppwrite";
 import { getUsers } from "@/lib/appwrite";
 import { UserItem } from "@/components/UserItem";
-import { useGlobalContext } from "@/lib/global-context";
-import { jsx } from "react/jsx-runtime";
 
 const Request = () => {
   const { data: users, loading } = useAppwrite({ fn: getUsers });
-  const user = useGlobalContext();
 
   return loading ? (
     <ActivityIndicator size={10} />

@@ -9,20 +9,18 @@ import {
   Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { useAppwrite } from "@/lib/useAppwrite";
 import {
   createTransaction,
   deleteTransaction,
-  getUserById,
   updateDebtStatus,
   updateTransaction,
 } from "@/lib/appwrite";
 import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
-import icons from "@/constants/icons";
-import { useGlobalContext } from "@/lib/global-context";
 import { Badge, Loading, NavBarBack, TransactionItem } from "@/components";
+import { useUserStore } from "@/store/user.store";
+import { showToast } from "@/app/utils/Toast";
 
 const transaccionFilter = {
   Pagado: "Pagado",
@@ -31,26 +29,16 @@ const transaccionFilter = {
 };
 
 const UserDetails = () => {
-  const { id } = useLocalSearchParams();
-  const { user } = useGlobalContext();
-  const { data, loading } = useAppwrite({
-    fn: getUserById,
-    params: { id: id.toString() },
-  });
+  const { id: user_id } = useLocalSearchParams();
+
+  const user = useUserStore((state) => state.user);
+  const updateUser = useUserStore((action) => action.updateUser);
 
   const [filter, setFilter] = useState<null | string>("");
   const [transaction, setTransaction] = useState({
     monto: "",
     motivo: "",
   });
-
-  const [createdUser, setcreatedUser] = useState(null);
-
-  useEffect(() => {
-    if (data) {
-      setcreatedUser(data);
-    }
-  }, [data]);
 
   let timer: number = null;
   const TIMEOUT = 500;
@@ -70,26 +58,39 @@ const UserDetails = () => {
 
   const onChangeStatus = (id: string) => {
     try {
-      const updatedTransactions = createdUser?.transactions.map(
-        (transaction) => {
-          if (transaction.$id === id) {
+      const updatedTransactions = user.createdUsers
+        ?.find((user) => user.$id === user_id)
+        ?.transactions!.map((transaction) => {
+          if (transaction.$id == id) {
             const paid = transaction.isAlreadyPaid == true ? null : true;
-            updateTransaction({ id: transaction.$id, isAlreadyPaid: paid });
+            // updateTransaction({ id: transaction.$id, isAlreadyPaid: paid });
             return { ...transaction, isAlreadyPaid: paid };
           }
           return transaction;
-        }
-      );
-      const noDebt = !updatedTransactions.some(
+        });
+      const noDebt = !updatedTransactions?.some(
         ({ isAlreadyPaid }) => isAlreadyPaid == false || isAlreadyPaid == null
       );
-      updateDebtStatus({ id: createdUser?.$id, noDebt });
-      setcreatedUser((prev) => ({
-        ...prev,
-        transactions: updatedTransactions,
-        noDebt,
-      }));
+
+      // updateDebtStatus({ id: createdUser?.$id, noDebt });
+
+      updateUser({
+        ...user,
+        createdUsers: user.createdUsers!.map((createdUser) => {
+          if (createdUser.$id == user_id) {
+            return {
+              ...createdUser,
+              transactions: updatedTransactions,
+              noDebt,
+            };
+          }
+          return createdUser;
+        }),
+      });
+
+      showToast("Transaccion actualizada");
     } catch (error) {
+      console.log(error);
       ToastAndroid.show(
         "Error al actualizar la transaccion",
         ToastAndroid.SHORT
@@ -108,12 +109,22 @@ const UserDetails = () => {
         text: "OK",
         onPress: () => {
           deleteTransaction({ id });
-          setcreatedUser((prev) => ({
-            ...prev,
-            transactions: prev.transactions.filter(
-              (transaction) => transaction.$id !== id
-            ),
-          }));
+          updateUser({
+            ...user,
+
+            createdUsers: user.createdUsers?.map((createdUser) => {
+              if (createdUser.$id === user_id) {
+                return {
+                  ...createdUser,
+                  transactions: createdUser?.transactions.filter(
+                    (transaction) => transaction.$id !== id
+                  ),
+                };
+              }
+              return createdUser;
+            }),
+          });
+
           ToastAndroid.show("Transaccion eliminada", ToastAndroid.SHORT);
         },
       },
@@ -126,36 +137,50 @@ const UserDetails = () => {
       return;
     }
     try {
+      const createdUser = user.createdUsers?.find(
+        (item) => item.$id === user_id
+      );
       const newTransaction = await createTransaction({
         monto: transaction.monto,
         motivo: transaction.motivo,
         creditor: user?.$id,
         createdUsers: createdUser?.$id,
+        isAlreadyPaid: null,
       });
 
       if (newTransaction) {
         setTransaction({ monto: "", motivo: "" });
-        setcreatedUser((prev) => ({
-          ...prev,
-          transactions: [...prev!.transactions, newTransaction],
-          noDebt: null,
-        }));
-        updateDebtStatus({ id: createdUser?.$id, noDebt: false });
+
+        updateUser({
+          ...user,
+          createdUsers: user.createdUsers?.map((createdUser) => {
+            if (createdUser.$id == user_id) {
+              return {
+                ...createdUser,
+                transactions: createdUser.transactions?.concat({
+                  ...newTransaction,
+                }),
+              };
+            }
+            return createdUser;
+          }),
+        });
+        updateDebtStatus({ id: createdUser?.$id!, noDebt: false });
 
         ToastAndroid.show("Transaccion creada", ToastAndroid.SHORT);
       }
     } catch (error) {
+      console.log(error);
       ToastAndroid.show("Error al crear la transaccion", ToastAndroid.SHORT);
     }
   }
 
-  if (loading && !createdUser) return <Loading title="Loading..." />;
-
   return (
     <SafeAreaView className="flex-1 py-5">
       <FlatList
-        data={createdUser?.transactions
-          ?.filter((item) => {
+        data={user?.createdUsers
+          ?.find((user) => user.$id === user_id)
+          ?.transactions?.filter((item) => {
             if (filter == "") return item;
             if (
               item.isAlreadyPaid == null &&
@@ -195,106 +220,103 @@ const UserDetails = () => {
         }
         ListHeaderComponent={
           <>
-            {loading && !createdUser && <Loading />}
-
-            {!loading && createdUser && (
-              <>
-                <NavBarBack title="Detalles" />
-                <HeaderUserDetails
-                  user={createdUser}
-                  transactions={createdUser?.transactions}
-                />
-                <View className="flex flex-row justify-center items-center px-5 gap-3">
-                  <TextInput
-                    className="flex-1 bg-gray-200 p-2 rounded-lg"
-                    placeholder="Motivo"
-                    keyboardType="default"
-                    onChangeText={(value) =>
-                      setTransaction({ ...transaction, motivo: value })
+            <NavBarBack title="Detalles" />
+            <HeaderUserDetails
+              user={user?.createdUsers?.find(
+                (createdUser) => createdUser.$id === user_id
+              )}
+              transactions={
+                user?.createdUsers?.find(
+                  (createdUser) => createdUser.$id === user_id
+                )?.transactions
+              }
+            />
+            <View className="flex flex-row justify-center items-center px-5 gap-3">
+              <TextInput
+                className="flex-1 bg-gray-200 p-2 rounded-lg"
+                placeholder="Motivo"
+                keyboardType="default"
+                onChangeText={(value) =>
+                  setTransaction({ ...transaction, motivo: value })
+                }
+                value={transaction.motivo}
+              />
+              <TextInput
+                className="flex-1 bg-gray-200 p-2 rounded-lg"
+                placeholder="Monto"
+                keyboardType="number-pad"
+                onChangeText={(value) =>
+                  setTransaction({ ...transaction, monto: +value })
+                }
+                value={transaction.monto.toString()}
+              />
+              <TouchableOpacity
+                className="p-2 rounded-lg mx-auto  gap-3  flex flex-col items-center justify-center "
+                onPress={handleOnPress}
+              >
+                <Text className="text-md text-white bg-primary-300  p-2 rounded-lg">
+                  Agregar
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="mt-2">
+              <Text className="text-start mx-5 text-sm text-gray-500">
+                Filtrar Por:
+              </Text>
+              <View className="flex flex-row gap-2 items-center justify-center my-2">
+                <TouchableOpacity
+                  className={`px-2 py-1 rounded-full ${
+                    filter === transaccionFilter.Pagado ? "bg-green-200" : ""
+                  }`}
+                  onPress={() => {
+                    if (transaccionFilter.Pagado === filter) {
+                      setFilter("");
+                      return;
                     }
-                    value={transaction.motivo}
-                  />
-                  <TextInput
-                    className="flex-1 bg-gray-200 p-2 rounded-lg"
-                    placeholder="Monto"
-                    keyboardType="number-pad"
-                    onChangeText={(value) =>
-                      setTransaction({ ...transaction, monto: +value })
+                    setFilter(transaccionFilter.Pagado);
+                  }}
+                >
+                  <Text>Pagado</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`px-2 py-1 rounded-full ${
+                    filter === transaccionFilter.Pendiente
+                      ? "bg-yellow-200"
+                      : ""
+                  }`}
+                  onPress={() => {
+                    if (transaccionFilter.Pendiente === filter) {
+                      setFilter("");
+                      return;
                     }
-                    value={transaction.monto.toString()}
-                  />
-                  <TouchableOpacity
-                    className="p-2 rounded-lg mx-auto   flex flex-col items-center justify-center "
-                    onPress={handleOnPress}
-                  >
-                    <Text className="text-center text-md text-white bg-primary-300  p-2 rounded-lg">Agregar</Text>
-                  
-                  </TouchableOpacity>
-                </View>
-                <View className="mt-2">
-                  <Text className="text-start mx-5 text-sm text-gray-500">
-                    Filtrar Por:
-                  </Text>
-                  <View className="flex flex-row gap-2 items-center justify-center my-2">
-                    <TouchableOpacity
-                      className={`px-2 py-1 rounded-full ${
-                        filter === transaccionFilter.Pagado
-                          ? "bg-green-200"
-                          : ""
-                      }`}
-                      onPress={() => {
-                        if (transaccionFilter.Pagado === filter) {
-                          setFilter("");
-                          return;
-                        }
-                        setFilter(transaccionFilter.Pagado);
-                      }}
-                    >
-                      <Text>Pagado</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className={`px-2 py-1 rounded-full ${
-                        filter === transaccionFilter.Pendiente
-                          ? "bg-yellow-200"
-                          : ""
-                      }`}
-                      onPress={() => {
-                        if (transaccionFilter.Pendiente === filter) {
-                          setFilter("");
-                          return;
-                        }
-                        setFilter(transaccionFilter.Pendiente);
-                      }}
-                    >
-                      <Text>Pendiente</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className={`px-2 py-1 rounded-full ${
-                        filter === transaccionFilter.Rechazado
-                          ? "bg-red-200"
-                          : ""
-                      }`}
-                      onPress={() => {
-                        if (transaccionFilter.Rechazado === filter) {
-                          setFilter("");
-                          return;
-                        }
-                        setFilter(transaccionFilter.Rechazado);
-                      }}
-                    >
-                      <Text>Rechazado</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                    setFilter(transaccionFilter.Pendiente);
+                  }}
+                >
+                  <Text>Pendiente</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`px-2 py-1 rounded-full ${
+                    filter === transaccionFilter.Rechazado ? "bg-red-200" : ""
+                  }`}
+                  onPress={() => {
+                    if (transaccionFilter.Rechazado === filter) {
+                      setFilter("");
+                      return;
+                    }
+                    setFilter(transaccionFilter.Rechazado);
+                  }}
+                >
+                  <Text>Rechazado</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-                <View className="flex-row mx-7 mt-2 justify-center items-center gap-5">
-                  <Text className="flex-1 font-semibold text-lg">Razon</Text>
-                  <Text className="flex-1 font-semibold text-lg">Monto</Text>
-                  <Text className="flex-2 font-semibold text-lg">Estado</Text>
-                  <Text className="flex-1 font-semibold text-lg"></Text>
-                </View>
-              </>
-            )}
+            <View className="flex-row mx-7 mt-2 justify-center items-center gap-5">
+              <Text className="flex-1 font-semibold text-lg">Razon</Text>
+              <Text className="flex-1 font-semibold text-lg">Monto</Text>
+              <Text className="flex-2 font-semibold text-lg">Estado</Text>
+              <Text className="flex-1 font-semibold text-lg"></Text>
+            </View>
           </>
         }
       />
