@@ -3,10 +3,10 @@ import React from "react";
 import { router } from "expo-router";
 import icons from "@/constants/icons";
 
-export const NavBarBack = ({ title = "" }: { title?: string }) => {
+export const NavBarBack = ({ children }: { children?: React.ReactNode }) => {
   
   return (
-    <View className="flex flex-row items-center gap-4 m-2">
+    <View className="flex flex-row items-center gap-4 m-2 p-1 rounded-lg bg-red-100">
       <TouchableOpacity
         className="flex flex-row items-center gap-2"
         onPress={() => router.back()}
@@ -15,7 +15,8 @@ export const NavBarBack = ({ title = "" }: { title?: string }) => {
           <Image className="size-7" source={icons.backArrow} />
         </View>
       </TouchableOpacity>
-      <Text className="text-2xl">{title}</Text>
+      {children}
+
     </View>
   );
 };

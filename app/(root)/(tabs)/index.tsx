@@ -12,7 +12,6 @@ import {
   TextInput,
   Modal,
   ScrollView,
-  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,17 +24,15 @@ export default function Index() {
   const params = useLocalSearchParams<{ query?: string; filter?: string }>();
   const [modalVisible, setModalVisible] = useState(false);
 
-
-
   const [action, setaction] = useState<{ name: string; created_by: string }>({
     name: "",
     created_by: "",
   });
 
   const handleOnPressWallet = (id: string) => {
+    console.log(id);
     router.push(`/wallets/${id}`);
   };
-
 
   return (
     <SafeAreaView className=" bg-[#eee] mt-5 flex-1">
@@ -51,7 +48,7 @@ export default function Index() {
         contentContainerClassName="pb-20 gap-2"
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
-          return <UserCard {...item}  />;
+          return <UserCard {...item} />;
         }}
         numColumns={3}
         ListEmptyComponent={
@@ -66,18 +63,21 @@ export default function Index() {
             <Header avatar={user?.avatar!} name={user?.name!} />
             <View className="mt-3">
               <FlatList
-                pagingEnabled
                 horizontal
-                data={ [
+                showsHorizontalScrollIndicator={false}
+                data={[
                   {
+                    $id: "personal",
                     name: "Personal",
-                    $id: user?.$id,
-                    transactions:user.createdUsers?.flatMap((user) => user.transactions),
+                    transactions: user.createdUsers?.flatMap(
+                      (user) => user.transactions
+                    ),
                   },
                 ].concat(
                   user?.memberOf.map((item) => ({
                     name: item.name,
                     transactions: item.transactions,
+                    $id: item.$id,
                   }))
                 )}
                 renderItem={({ item }) => {

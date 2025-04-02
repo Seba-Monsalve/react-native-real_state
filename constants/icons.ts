@@ -34,8 +34,12 @@ import edit from "@/assets/icons/edit.png";
 import add from "@/assets/icons/add.png";
 import clear from "@/assets/icons/delete.png";
 import transparency from "@/assets/icons/transparency.png";
+import chevronRight from "@/assets/icons/chevron-right.png";
+import ellipsis from "@/assets/icons/ellipsis.png";
 
 export default {
+  ellipsis,
+  chevronRight,
   transparency,
   google,
   home,

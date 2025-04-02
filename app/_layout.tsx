@@ -2,9 +2,7 @@ import { SplashScreen, Stack } from "expo-router";
 import "./global.css";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
-import { useAppwrite } from "@/lib/useAppwrite";
-import { getCurrentUser } from "@/lib/appwrite";
-import { useUserStore } from "@/store/user.store";
+
 export default function RootLayout() {
   const [fonstLoaded] = useFonts({
     "Rubik-Bold": require("../assets/fonts/Rubik-Bold.ttf"),

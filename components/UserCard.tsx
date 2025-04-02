@@ -27,7 +27,7 @@ export const UserCard = ({ name, $id, noDebt }: any) => {
           />
         </View> */}
         <View className=" flex flex-col justify-center  items-center gap-3 w-full">
-          <Text className="font-semibold ">{name}</Text>
+          <Text className="font-semibold text-center overflow-ellipsis line-clamp-1 ">{name}</Text>
           <Badge size="md" tipo={noDebt ? "Al dia" : "Con deuda"} />
         </View>
       </View>

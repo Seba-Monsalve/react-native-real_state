@@ -1,35 +1,311 @@
-import { View, Text, Image, FlatList,  } from "react-native";
-import React from "react";
-import {  useLocalSearchParams } from "expo-router";
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+} from "react-native";
+import React, { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
 import icons from "@/constants/icons";
-import {Loading, NavBarBack,ListItem} from "@/components/";
+import { Loading, NavBarBack, Badge, NoResults } from "@/components/";
+import { CreatedUser, Organization } from "@/app/interfaces/user.interface";
+import { useUserStore } from "@/store/user.store";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useOrgStore } from "@/store/organization.store";
 
 const Wallet = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const user = useUserStore((state) => state.user);
+  const orgs = useOrgStore((state) => state.orgs);
 
+  const loadingUser = useUserStore((state) => state.loading);
+  const loadingOrgs = useOrgStore((state) => state.loading);
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const loading = loadingUser || loadingOrgs;
+
+  if (loading) return <Loading />;
+
+  const [filter, setFilter] = useState<null | string>("");
+
+  const transaccionFilter = {
+    Pagado: "Pagado",
+    Pendiente: "Pendiente",
+    Rechazado: "Rechazado",
+  };
+
+  const org =
+    id == "personal"
+      ? {
+          $id: "personal",
+          name: user.name,
+          transactions: user.createdUsers?.flatMap((user: CreatedUser) =>
+            user.transactions?.map((transaction) => {
+              return {
+                ...transaction,
+                createdUser: user,
+              };
+            })
+          ),
+        }
+      : orgs.find((org: Organization) => org.$id == id);
+
+  const isAdmin = id == "personal" ? true : org?.admins.includes(user.$id);
+
+  const { paid = 0, debt = 0 } = org?.transactions?.reduce(
+    (acc, item) => {
+      if (item.isAlreadyPaid == true) {
+        acc.paid += item.monto; // Sumar a los mtontos pagados
+      } else if (item.isAlreadyPaid === null) {
+        acc.debt += item.monto; // Sumar a los montos no pagados
+      }
+      return acc;
+    },
+    { paid: 0, debt: 0, pending: 0 } // Valores iniciales
+  );
+  const total = paid + debt;
+
+  const Summary = () => {
+    return (
+      <>
+        <View className="flex flex-row items-center justify-around ">
+          <View className=" flex-1 flex-col gap-2 p-3">
+            <Text className="text-xl p-3 rounded-xl bg-white text-gray-600">
+              Pagado: {paid}
+            </Text>
+            <Text className="text-xl p-3 rounded-xl bg-white text-gray-600">
+              Deuda: {debt}
+            </Text>
+            <Text className="text-xl p-3 rounded-xl bg-white text-gray-600">
+              Total: {total}
+            </Text>
+          </View>
+          <View className=" flex-2 flex-col gap-2 p-3">
+            <Text className="text-xl p-3 text-center rounded-xl bg-white text-gray-600">
+              Last Week
+            </Text>
+            <Text className="text-xl p-3 text-center rounded-xl bg-white text-gray-600">
+              Monthly
+            </Text>
+            <Text className="text-xl p-3 text-center rounded-xl bg-white text-gray-600">
+              Year
+            </Text>
+          </View>
+        </View>
+      </>
+    );
+  };
 
   return (
-    <View className="flex-1 mt-5 px-3 mx-2">
-      <View className="flex flex-row items-center justify-between ">
-        <NavBarBack />
-        <Text className="text-3xl font-semibold text-gray-800">Summary {id}</Text>
-        <View className="bg-white rounded-full p-2">
-          <Image source={icons.info} className="size-7" />
-        </View>
-      </View>
+    <SafeAreaView>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {}}
+      >
+        <TouchableOpacity
+          className="opacity-90 bg-gray-600 flex-1 justify-center items-center "
+          onPress={() => {}}
+        >
+          <View className="bg-white p-20 rounded-xl shadow-lg gap-4 flex items-center justify-center ">
+            <View className="flex flex-row gap-4 w-full justify-center items-center mt-3">
+              <TouchableOpacity
+                className="border border-red-500 p-2 rounded-xl font-semibold justify-center items-center"
+                onPress={() => setModalVisible((prev) => !prev)}
+              >
+                <Text className="p-1 font-semibold ">Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-      <View className=" mt-5">
-        <Text className="text-xl text-gray-600">Total:</Text>
-      </View>
+      <FlatList
+        data={
+          org?.transactions
+            ?.filter((item) => {
+              if (filter == "") return item;
+              return filter == transaccionFilter.Pagado
+                ? item.isAlreadyPaid == true
+                : item.isAlreadyPaid == null;
+            })
+            .sort((a, b) => {
+              return (
+                new Date(b.$createdAt).getTime() -
+                new Date(a.$createdAt).getTime()
+              );
+            }) ?? []
+        }
+        keyExtractor={(item) => item.$id}
+        contentContainerClassName="pb-20 gap-2"
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => {
+          return (
+            <View className="flex flex-1 flex-row mt-0 justify-around items-center px-3 bg-white py-1 mx-3 rounded-lg">
+              <Badge
+                tipo={item.isAlreadyPaid == true ? "Al dia" : "Pendiente"}
+                size={"md"}
+              ></Badge>
+              <View className="flex-col items-center justify-around">
+                <Text className="text-md"> {item.motivo}</Text>
+                <Text className="text-sm text-black-100">${item.monto}</Text>
+              </View>
 
-      <View className="flex-1 px-2 mt-5">
-        <View className="flex flex-row items-center justify-between">
-          <Text className="text-2xl  font-semibold mb-2">
-          </Text>
-        </View>
-        
-      </View>
-    </View>
+              <View className="flex flex-col gap-1 items-center ">
+                <Text className="text-sm">{item.createdUser.name}</Text>
+                <Text className="text-sm text-black-200">
+                  {item.$createdAt.substring(0, 10)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(`/createdUsers/${item.createdUser.$id}`)
+                }
+                className=" flex  flex-2 p-1 bg-primary-100 rounded-full"
+              >
+                <Image className="size-7" source={icons.chevronRight} />
+              </TouchableOpacity>
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          <View className=" flex-1 items-center justify-center">
+            <NoResults />
+          </View>
+        }
+        ListHeaderComponent={
+          <ScrollView className="flex-1 mt-5 px-3 mx-2">
+            <NavBarBack>
+              <View className="flex-1 flex-row gap-2 justify-between items-center">
+                <View className="flex flex-col ">
+                  <View className="flex flex-row items-center rounded-full gap-2 px-2">
+                    <Text className="text-2xl font-semibold">
+                      {org?.name ?? "Wallet"}
+                    </Text>
+                    {org?.isTransparent && (
+                      <Image
+                        source={icons.transparency}
+                        className="animate-pulse size-8"
+                        tintColor={"#facc15"}
+                      />
+                    )}
+                  </View>
+                  {org?.description && (
+                    <Text className="ms-4 text-black-300">
+                      {org?.description}
+                    </Text>
+                  )}
+                </View>
+
+                {isAdmin && (
+                  <TouchableOpacity>
+                    <Image
+                      className="size-8 text-black-300"
+                      tintColor={"#191D31"}
+                      source={icons.ellipsis}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </NavBarBack>
+
+            <Summary />
+
+            {/* 
+            <View>
+              <Text>Filtros fecha</Text>
+            </View> */}
+
+            {id != "personal" && (
+              <>
+                <Text className=" my-1 text-2xl text-black-300">
+                  Integrantes
+                </Text>
+                <FlatList
+                  data={org?.members}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity className="mx-2 my-1">
+                      <Image
+                        source={{ uri: item.avatar }}
+                        className=" size-10  rounded-full"
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+                  )}
+                  horizontal
+                />
+              </>
+            )}
+            <View className="flex-row items-center ">
+              <Text className="text-black-300 text-2xl font-semibold">
+                Transacciones:{" "}
+                {
+                  org?.transactions?.filter((item) => {
+                    return filter == ""
+                      ? item
+                      : filter == transaccionFilter.Pagado
+                      ? item.isAlreadyPaid == true
+                      : item.isAlreadyPaid == null;
+                  }).length
+                }
+              </Text>
+              {/* Filters */}
+              <View className="flex flex-row gap-2 items-center justify-center my-2 flex-1">
+                <TouchableOpacity
+                  className={`px-2 py-1 rounded-full ${
+                    filter === transaccionFilter.Pagado ? "bg-green-200" : ""
+                  }`}
+                  onPress={() => {
+                    if (transaccionFilter.Pagado === filter) {
+                      setFilter("");
+                      return;
+                    }
+                    setFilter(transaccionFilter.Pagado);
+                  }}
+                >
+                  <Text>Pagado</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`px-2 py-1 rounded-full ${
+                    filter === transaccionFilter.Pendiente
+                      ? "bg-yellow-200"
+                      : ""
+                  }`}
+                  onPress={() => {
+                    if (transaccionFilter.Pendiente === filter) {
+                      setFilter("");
+                      return;
+                    }
+                    setFilter(transaccionFilter.Pendiente);
+                  }}
+                >
+                  <Text>Pendiente</Text>
+                </TouchableOpacity>
+                {/* <TouchableOpacity
+                  className={`px-2 py-1 rounded-full ${
+                    filter === transaccionFilter.Rechazado ? "bg-red-200" : ""
+                  }`}
+                  onPress={() => {
+                    if (transaccionFilter.Rechazado === filter) {
+                      setFilter("");
+                      return;
+                    }
+                    setFilter(transaccionFilter.Rechazado);
+                  }}
+                >
+                  <Text>Rechazado</Text>
+                </TouchableOpacity> */}
+              </View>
+            </View>
+          </ScrollView>
+        }
+      />
+    </SafeAreaView>
   );
 };
 

@@ -34,3 +34,15 @@ export interface CreatedUser {
   $id: string;
   transactions?: Transaction[];
 }
+
+export interface Organization {
+  $id: string;
+  created_by: User;
+  description: string;
+  image: null;
+  isTransparent: boolean;
+  name: string;
+  transactions: Transaction[];
+  members: User[];
+  admins: User[];
+}

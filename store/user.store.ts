@@ -1,4 +1,4 @@
-import { User, CreatedUser } from "@/app/interfaces/user.interface";
+import { User } from "@/app/interfaces/user.interface";
 import { create } from "zustand";
 
 type Action = {

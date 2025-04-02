@@ -8,7 +8,7 @@ import {
   ToastAndroid,
   Alert,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   createTransaction,
   deleteTransaction,
@@ -201,7 +201,7 @@ const UserDetails = () => {
           .reverse()}
         renderItem={({ item }) => {
           return (
-            <View className="flex flex-row px-3 items-center">
+            <View className="flex-1  flex-row px-3 gap-2 items-center">
               <TransactionItem
                 {...item}
                 onPress={() => debounce(null, () => onChangeStatus(item.$id))}
@@ -220,7 +220,7 @@ const UserDetails = () => {
         }
         ListHeaderComponent={
           <>
-            <NavBarBack title="Detalles" />
+            <NavBarBack  />
             <HeaderUserDetails
               user={user?.createdUsers?.find(
                 (createdUser) => createdUser.$id === user_id
@@ -311,11 +311,10 @@ const UserDetails = () => {
               </View>
             </View>
 
-            <View className="flex-row mx-7 mt-2 justify-center items-center gap-5">
+            <View className="flex-row mx-7  justify-center items-center ">
               <Text className="flex-1 font-semibold text-lg">Razon</Text>
               <Text className="flex-1 font-semibold text-lg">Monto</Text>
               <Text className="flex-2 font-semibold text-lg">Estado</Text>
-              <Text className="flex-1 font-semibold text-lg"></Text>
             </View>
           </>
         }

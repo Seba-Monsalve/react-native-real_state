@@ -1,12 +1,13 @@
-import { getCurrentUser } from "@/lib/appwrite";
+import { getCurrentUser, getOrganizations } from "@/lib/appwrite";
 import { useAppwrite } from "@/lib/useAppwrite";
+import { useOrgStore } from "@/store/organization.store";
 import { useUserStore } from "@/store/user.store";
 import { Redirect, Slot } from "expo-router";
 import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AppLayout({}) {
-    
+
       const {
         data: user,
         loading,
@@ -14,11 +15,24 @@ export default function AppLayout({}) {
       } = useAppwrite({
         fn: getCurrentUser,
       });
-    
-      const store = useUserStore;
-      store.setState({ user, loading, refetch });
-    
+      
+      const {
+        data: organizations,
+        loading:loadingOrgs,
+        refetch: refetchOrgs,
+      } = useAppwrite({
+        fn: getOrganizations,
+      });
 
+
+      const userStore = useUserStore;
+      const orgStore = useOrgStore;
+
+      userStore.setState({ user, loading, refetch });
+    
+      orgStore.setState({orgs: organizations?.documents, loadingOrgs, refetchOrgs });
+    
+      
 
   if (loading)
   {
