@@ -30,7 +30,6 @@ export default function Index() {
   });
 
   const handleOnPressWallet = (id: string) => {
-    console.log(id);
     router.push(`/wallets/${id}`);
   };
 

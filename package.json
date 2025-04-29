@@ -36,6 +36,7 @@
     "react-dom": "18.3.1",
     "react-native": "0.76.7",
     "react-native-appwrite": "0.5.0",
+    "react-native-bouncy-checkbox": "^4.1.2",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-gifted-charts": "^1.4.58",
     "react-native-image-viewing": "^0.2.2",

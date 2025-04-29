@@ -396,3 +396,24 @@ export const createOrganizationRequest = async ({ user_id, org_id }: any) => {
   }
 };
 
+export const updateOrganizationConfig = async ({ org_id, options }: any) => {
+  try {
+    console.log({options});
+    console.log(org_id);
+    const request = await databases.updateDocument(
+      config.databaseId!,
+      config.organizationsCollectionId!,
+      org_id,
+      {
+        showMembers: options.showMembers,
+        showTransactions: options.showTransactions,
+        showSummary: options.showSummary,
+      }
+    );
+    return true;
+  } catch (error) {
+    console.log("error en updateOrganizationConfig", error);
+    return false;
+  }
+};
+

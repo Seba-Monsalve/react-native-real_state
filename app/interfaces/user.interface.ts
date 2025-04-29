@@ -45,4 +45,7 @@ export interface Organization {
   transactions: Transaction[];
   members: User[];
   admins: User[];
+  showMembers:boolean
+  showTransactions:boolean
+  showSummary:boolean
 }
