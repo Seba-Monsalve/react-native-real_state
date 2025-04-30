@@ -220,7 +220,9 @@ const UserDetails = () => {
         }
         ListHeaderComponent={
           <>
-            <NavBarBack  />
+            <NavBarBack  >
+              <Text className="text-2xl">Resumen de Usuario </Text>
+            </NavBarBack  >
             <HeaderUserDetails
               user={user?.createdUsers?.find(
                 (createdUser) => createdUser.$id === user_id

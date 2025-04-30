@@ -47,5 +47,4 @@ export interface Organization {
   admins: User[];
   showMembers:boolean
   showTransactions:boolean
-  showSummary:boolean
 }

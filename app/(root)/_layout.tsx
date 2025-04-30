@@ -25,12 +25,14 @@ export default function AppLayout({}) {
       });
 
 
+      console.log({refetchOrgs});
+
       const userStore = useUserStore;
       const orgStore = useOrgStore;
 
       userStore.setState({ user, loading, refetch });
     
-      orgStore.setState({orgs: organizations?.documents, loadingOrgs, refetchOrgs });
+      orgStore.setState({orgs: organizations?.documents, loadingOrgs, refetch:refetchOrgs });
     
       
 

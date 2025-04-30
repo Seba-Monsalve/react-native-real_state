@@ -73,7 +73,7 @@ export default function Index() {
                     ),
                   },
                 ].concat(
-                  user?.memberOf.map((item) => ({
+                  user?.memberOf!.map((item) => ({
                     name: item.name,
                     transactions: item.transactions,
                     $id: item.$id,
@@ -152,7 +152,7 @@ export default function Index() {
                         });
                         updateUser({
                           ...user,
-                          createdUsers: [...user.createdUsers].concat(
+                          createdUsers: [...user.createdUsers!].concat(
                             createdUser
                           ),
                         });

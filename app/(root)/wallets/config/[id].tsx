@@ -12,9 +12,8 @@ const ConfigWallet = () => {
 
   const org = useOrgStore((state) => state.orgs).find((org) => org.$id === id);
   const [config, setconfig] = useState({
-    showTransactions: org?.showTransactions || "",
-    showSummary: org?.showSummary || "",
-    showMembers: org?.showMembers || "",
+    showTransactions: org?.showTransactions || false,
+    showMembers: org?.showMembers || false,
   });
 
   const onPressSwitch = ({ id, value }: any) => {
@@ -48,7 +47,9 @@ const ConfigWallet = () => {
         <Text className="text-3xl">Configuracion</Text>
         <View className="flex flex-col gap-3 items-center mt-2">
           <BouncyCheckbox
-            id="transactions"
+                      isChecked={config.showTransactions}
+          
+            id="showTransactions"
             textStyle={{
               textDecorationLine: "none",
               fontSize: 20,
@@ -56,31 +57,19 @@ const ConfigWallet = () => {
             }}
             size={25}
             fillColor="blue"
-            text="Mostrar las transacciones de los integrantes"
+            text="Mostrar todas las transacciones de todos los integrantes"
             iconStyle={{ borderColor: "blue" }}
             innerIconStyle={{ borderWidth: 2 }}
             onPress={(isChecked: boolean) => {
               onPressSwitch({ id: "showTransactions", value: isChecked });
             }}
+            
           />
+         
           <BouncyCheckbox
-            id="summary"
-            textStyle={{
-              textDecorationLine: "none",
-              fontSize: 20,
-              color: "black",
-            }}
-            size={25}
-            fillColor="blue"
-            text="Mostrar resumen de todas las finanzas (B-Clear)"
-            iconStyle={{ borderColor: "blue" }}
-            innerIconStyle={{ borderWidth: 2 }}
-            onPress={(isChecked: boolean) => {
-              onPressSwitch({ id: "showSummary", value: isChecked });
-            }}
-          />
-          <BouncyCheckbox
-            id="members"
+                      isChecked={config.showMembers}
+
+            id="showMembers"
             textStyle={{
               textDecorationLine: "none",
               fontSize: 20,

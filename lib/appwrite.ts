@@ -407,7 +407,6 @@ export const updateOrganizationConfig = async ({ org_id, options }: any) => {
       {
         showMembers: options.showMembers,
         showTransactions: options.showTransactions,
-        showSummary: options.showSummary,
       }
     );
     return true;
